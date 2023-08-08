@@ -20,7 +20,7 @@ const PROMPT = `
 	Note: If the message contains a URL but does not describe a clear task, consider it "No" and provide the reason accordingly.
 
 	**User Message:** "{messageText}"
-`
+`;
 module.exports = {
-	PROMPT
-}
+  PROMPT,
+};
