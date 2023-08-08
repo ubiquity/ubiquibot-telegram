@@ -1,4 +1,4 @@
-name = "telegram-auto-bounty-worker"
+name = "telegram-ubiquibot"
 main = "src/worker.js"
 compatibility_date = "2023-08-01"
 

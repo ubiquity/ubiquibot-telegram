@@ -11,7 +11,7 @@ This project allows you to deploy a Telegram`X`ChatGPT auto bounty issue creator
 If you are using `yarn`:
 
 ```bash
-cd telegram-auto-bounty-worker
+cd telegram-ubiquibot
 yarn
 ```
 
