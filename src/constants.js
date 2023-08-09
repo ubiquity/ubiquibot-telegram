@@ -3,7 +3,7 @@ const TIME_LABELS = ["Time: <1 Hour", "Time: <1 Day", "Time: <1 Week", "Time: <2
 const repoMapping = [
   {
     group: -1001738021587,
-    github: "seprintour/betterbuy",
+    github: "Seprintour-Test/test",
   },
 ];
 
