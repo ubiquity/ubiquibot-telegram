@@ -1,6 +1,7 @@
-const GREETINGS = ["Hey", "Hi", "Hello", "Morning", "Afternoon", "Evening", "Greetings"];
+const GREETINGS = ["Hello", "Morning", "Afternoon", "Evening", "Greetings"];
 
-const isGreeting = (chatMessage) => {
+const isGreeting = (chatMessage) =>
+{
   // Convert the chat message to lowercase for case-insensitive matching
   const lowerCaseChat = chatMessage.toLowerCase();
 
