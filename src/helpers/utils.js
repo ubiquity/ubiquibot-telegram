@@ -28,6 +28,13 @@ const cleanMessage = (text) =>
   return cleanedText.replace(/(https?:\/\/[^\s]+)/g, "");
 };
 
+const removeTag = (text) =>
+{
+  // Remove all occurrences of @tag
+  const cleanedText = text.replace(/@\w+/g, "").trim();
+  return cleanedText;
+};
+
 function extractTag(text)
 {
   const regex = /@(\w+)/;
@@ -83,7 +90,8 @@ const generateMessageLink = (messageId, groupId) =>
 const generateGitHubIssueBody = (interceptedMessage, telegramMessageLink) =>
 {
   const quotedMessage = `> ${interceptedMessage.replace(/\n/g, "\n> ")}\n\n`;
-  return `${quotedMessage}${telegramMessageLink}`;
+  const footer = `###### [ **[ View Conversation Context ]** ](${telegramMessageLink})`
+  return `${quotedMessage}${footer}`;
 };
 
 const extractTaskInfo = (text) =>
@@ -135,4 +143,5 @@ module.exports = {
   generateGitHubIssueBody,
   extractTaskInfo,
   createCooldownFunction,
+  removeTag
 };

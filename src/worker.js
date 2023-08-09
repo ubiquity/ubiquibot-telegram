@@ -5,7 +5,7 @@
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, createCooldownFunction, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData } from "./helpers/utils";
+import { cleanMessage, createCooldownFunction, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
 
 const cooldownTime = 60000; // 1 minute cooldown for message handler
 const cooldownFunction = createCooldownFunction(cooldownTime);
@@ -128,9 +128,12 @@ async function onCallbackQuery(callbackQuery)
     }
 
     // get tagged user if available
-    const tagged = extractTag(replyToMessage)
+    const tagged = extractTag(replyToMessage);
 
-    const { data, assignees } = await createIssue(timeEstimate, orgName, repoName, title, replyToMessage, messageLink, tagged);
+    // remove tag from issue body
+    const tagFreeTitle = removeTag(replyToMessage)
+
+    const { data, assignees } = await createIssue(timeEstimate, orgName, repoName, title, tagFreeTitle, messageLink, tagged);
 
     console.log(`Issue created: ${data.html_url}`);
 
