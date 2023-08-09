@@ -4,7 +4,6 @@
 
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
-import { isGreeting } from "./helpers/greetings";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import { cleanMessage, createCooldownFunction, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData } from "./helpers/utils";
 
@@ -159,16 +158,6 @@ const onMessage = async (message) =>
   if (!isReady)
   {
     console.log(`Skipping, bot on cooldown`);
-    return;
-  }
-
-  // check if its a greeting or blacklisted word to save chatgpt calls
-  const greetings = isGreeting(message.text);
-
-  if (greetings)
-  {
-    console.log(`Skipping, message is excluded from check`);
-    console.log(message);
     return;
   }
 
