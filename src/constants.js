@@ -5,6 +5,10 @@ const repoMapping = [
     group: -1001738021587,
     github: "Seprintour-Test/test",
   },
+  {
+    group: -1001558587400,
+    github: "ubiquity/testing-telegram-ubiquibot",
+  }
 ];
 
 module.exports = {
