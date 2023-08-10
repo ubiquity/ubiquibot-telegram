@@ -21,7 +21,6 @@ addEventListener("fetch", (event) =>
     event.respondWith(handleWebhook(event));
   } else if (url.pathname === "/registerWebhook")
   {
-    console.log(INSTALLATION_TOKEN)
     event.respondWith(registerWebhook(event, url, WEBHOOK, SECRET));
   } else if (url.pathname === "/unRegisterWebhook")
   {
@@ -104,12 +103,20 @@ const unRegisterWebhook = async (event) =>
  */
 async function onCallbackQuery(callbackQuery)
 {
+  const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
+  const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
   const groupId = callbackQuery.message.chat.id; // group id
   const messageId = callbackQuery.message.message_id; // id for current message
   const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
   //const senderId = message.from.id
   const messageText = callbackQuery.message.text; // text of current message
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
+
+  // clicker needs to be the creator
+  if (clickerUsername !== creatorsUsername)
+  {
+    return answerCallbackQuery(callbackQuery.id, "You're not allowed to use this, :task-creator-only");
+  }
 
   if (callbackQuery.data === "create_task")
   {
