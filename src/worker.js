@@ -5,10 +5,7 @@
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, createCooldownFunction, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
-
-const cooldownTime = 60000; // 1 minute cooldown for message handler
-const cooldownFunction = createCooldownFunction(cooldownTime);
+import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
 
 /**
  * Wait for requests to the worker
@@ -163,8 +160,8 @@ const onMessage = async (message) =>
 {
   console.log(`Received message: ${message.text}`);
 
-  // check if cooldown
-  const isReady = cooldownFunction();
+  // Check if cooldown
+  const isReady = isCooldownReady();
 
   if (!isReady)
   {
@@ -189,6 +186,9 @@ const onMessage = async (message) =>
     console.log(`No valid task found`);
     return;
   }
+
+  // Update the last analysis timestamp upon successful analysis
+  setLastAnalysisTimestamp(Date.now());
 
   const groupId = message.chat.id; // group id
   const messageId = message.message_id;
