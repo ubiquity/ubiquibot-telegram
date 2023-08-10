@@ -43,7 +43,7 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
     const apiUrl = `https://api.github.com/repos/${organization}/${repository}/issues`;
 
     // labels array
-    const labels = [DEFAULT_PRIORITY, `Time: <${timeEstimate}`];
+    const labels = [`Time: <${timeEstimate}`];
 
     // create body
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
