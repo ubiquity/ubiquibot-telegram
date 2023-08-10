@@ -96,7 +96,7 @@ const generateGitHubIssueBody = (interceptedMessage, telegramMessageLink) =>
 
 const extractTaskInfo = (text) =>
 {
-  const regex = /Click confirm to create new task "(.*?)" on (.*?)\/(.*?) with time estimate (.+?)$/;
+  const regex = /"(.*?)" on (.*?)\/(.*?) with time estimate (.+?)$/;
   const match = text.match(regex);
   console.log(match);
 

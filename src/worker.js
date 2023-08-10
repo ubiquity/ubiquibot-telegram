@@ -206,7 +206,7 @@ const onMessage = async (message) =>
     return sendReply(
       groupId,
       messageId,
-      escapeMarkdown(`Click confirm to create new task *"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/")
+      escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/")
     );
   }
 };
