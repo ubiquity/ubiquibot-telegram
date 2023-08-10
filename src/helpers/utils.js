@@ -1,5 +1,11 @@
 const { repoMapping } = require("../constants");
 
+// global variable to track the last successful analysis timestamp
+let lastAnalysisTimestamp = 0;
+
+// Define the cooldown interval in milliseconds
+const cooldownInterval = 60000; // Example: 1 minute cooldown
+
 /**
  * Escape string for use in MarkdownV2-style text
  * if `except` is provided, it should be a string of characters to not escape
@@ -115,23 +121,19 @@ const extractTaskInfo = (text) =>
   }
 };
 
-const createCooldownFunction = (cooldownTimeInMilliseconds) =>
+// Cooldown function that checks if the cooldown period has passed
+const isCooldownReady = () =>
 {
-  let lastCallTime = 0;
-
-  return function ()
-  {
-    const currentTime = Date.now();
-    if (currentTime - lastCallTime >= cooldownTimeInMilliseconds)
-    {
-      lastCallTime = currentTime;
-      return true;
-    } else
-    {
-      return false;
-    }
-  };
+  const currentTime = Date.now();
+  return currentTime - lastAnalysisTimestamp >= cooldownInterval;
 };
+
+const setLastAnalysisTimestamp = (timestamp) =>
+{
+  lastAnalysisTimestamp = timestamp;
+};
+
+const getLastAnalysisTimestamp = () => lastAnalysisTimestamp;
 
 module.exports = {
   removeNewlinesAndExtractValues,
@@ -142,6 +144,8 @@ module.exports = {
   generateMessageLink,
   generateGitHubIssueBody,
   extractTaskInfo,
-  createCooldownFunction,
-  removeTag
+  removeTag,
+  isCooldownReady,
+  getLastAnalysisTimestamp,
+  setLastAnalysisTimestamp
 };
