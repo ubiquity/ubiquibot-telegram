@@ -21,6 +21,7 @@ addEventListener("fetch", (event) =>
     event.respondWith(handleWebhook(event));
   } else if (url.pathname === "/registerWebhook")
   {
+    console.log(INSTALLATION_TOKEN)
     event.respondWith(registerWebhook(event, url, WEBHOOK, SECRET));
   } else if (url.pathname === "/unRegisterWebhook")
   {
