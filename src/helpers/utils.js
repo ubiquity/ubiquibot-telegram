@@ -5,19 +5,22 @@ const { repoMapping } = require("../constants");
  * if `except` is provided, it should be a string of characters to not escape
  * https://core.telegram.org/bots/api#markdownv2-style
  */
-const escapeMarkdown = (str, except = "") => {
+const escapeMarkdown = (str, except = "") =>
+{
   const all = "_*[]()~`>#+-=|{}.!\\".split("").filter((c) => !except.includes(c));
   const regExSpecial = "^$*+?.()|{}[]\\";
   const regEx = new RegExp("[" + all.map((c) => (regExSpecial.includes(c) ? "\\" + c : c)).join("") + "]", "gim");
   return str.replace(regEx, "\\$&");
 };
 
-const extractNumberWithoutPrefix = (text) => {
+const extractNumberWithoutPrefix = (text) =>
+{
   const numberWithoutPrefix = text.replace(/^(-)?\d{3}/, "");
   return numberWithoutPrefix.length === 10 ? numberWithoutPrefix : null;
 };
 
-const cleanMessage = (text) => {
+const cleanMessage = (text) =>
+{
   // Remove all occurrences of @tag
   const cleanedText = text.replace(/@\w+/g, "");
 
@@ -25,13 +28,22 @@ const cleanMessage = (text) => {
   return cleanedText.replace(/(https?:\/\/[^\s]+)/g, "");
 };
 
-function extractTag(text) {
+const removeTag = (text) =>
+{
+  // Remove all occurrences of @tag
+  const cleanedText = text.replace(/@\w+/g, "").trim();
+  return cleanedText;
+};
+
+function extractTag(text)
+{
   const regex = /@(\w+)/;
   const match = regex.exec(text);
-  return match ? match[0] : null;
+  return match ? match[1] : null;
 }
 
-const removeNewlinesAndExtractValues = (text) => {
+const removeNewlinesAndExtractValues = (text) =>
+{
   // Remove all occurrences of '\n'
   const textWithoutNewlines = text.replace(/\n/g, "");
 
@@ -51,9 +63,11 @@ const removeNewlinesAndExtractValues = (text) => {
 /**
  * Get repo data from mapping
  */
-const getRepoData = (groupId) => {
+const getRepoData = (groupId) =>
+{
   const data = repoMapping.find((e) => e.group === groupId);
-  if (data.github) {
+  if (data.github)
+  {
     const orgName = data.github.split("/")[0];
     const repoName = data.github.split("/")[1];
     return {
@@ -68,21 +82,26 @@ const getRepoData = (groupId) => {
   };
 };
 
-const generateMessageLink = (messageId, groupId) => {
+const generateMessageLink = (messageId, groupId) =>
+{
   return `https://t.me/c/${extractNumberWithoutPrefix(groupId?.toString())}/${messageId?.toString()}`;
 };
 
-const generateGitHubIssueBody = (interceptedMessage, telegramMessageLink) => {
+const generateGitHubIssueBody = (interceptedMessage, telegramMessageLink) =>
+{
   const quotedMessage = `> ${interceptedMessage.replace(/\n/g, "\n> ")}\n\n`;
-  return `${quotedMessage}${telegramMessageLink}`;
+  const footer = `###### [ **[ View Conversation Context ]** ](${telegramMessageLink})`
+  return `${quotedMessage}${footer}`;
 };
 
-const extractTaskInfo = (text) => {
-  const regex = /Click confirm to create new task "(.*?)" on (.*?)\/(.*?) with time estimate (.+?)$/;
+const extractTaskInfo = (text) =>
+{
+  const regex = /"(.*?)" on (.*?)\/(.*?) with time estimate (.+?)$/;
   const match = text.match(regex);
   console.log(match);
 
-  if (match) {
+  if (match)
+  {
     const [_, title, orgName, repoName, timeEstimate] = match;
     return {
       title,
@@ -90,20 +109,25 @@ const extractTaskInfo = (text) => {
       repoName,
       timeEstimate,
     };
-  } else {
+  } else
+  {
     return null;
   }
 };
 
-const createCooldownFunction = (cooldownTimeInMilliseconds) => {
+const createCooldownFunction = (cooldownTimeInMilliseconds) =>
+{
   let lastCallTime = 0;
 
-  return function () {
+  return function ()
+  {
     const currentTime = Date.now();
-    if (currentTime - lastCallTime >= cooldownTimeInMilliseconds) {
+    if (currentTime - lastCallTime >= cooldownTimeInMilliseconds)
+    {
       lastCallTime = currentTime;
       return true;
-    } else {
+    } else
+    {
       return false;
     }
   };
@@ -119,4 +143,5 @@ module.exports = {
   generateGitHubIssueBody,
   extractTaskInfo,
   createCooldownFunction,
+  removeTag
 };
