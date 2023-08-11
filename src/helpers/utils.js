@@ -1,4 +1,5 @@
 const { repoMapping } = require("../constants");
+const { apiUrl } = require("./triggers");
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
@@ -121,6 +122,29 @@ const extractTaskInfo = (text) =>
   }
 };
 
+// Check if user is admin of group
+async function isAdminOfChat(userId, chatId)
+{
+  const data = {
+    chat_id: chatId,
+    user_id: userId
+  };
+
+  try
+  {
+    const response = await fetch(apiUrl("getChatMember", data))
+
+    const res = await response.json();
+
+    // Check if the API response indicates the user is an admin
+    return res.ok && (res.result.status === 'administrator' || res.result.status === 'creator');
+  } catch (error)
+  {
+    console.error('Error checking admin status:', error);
+    return false; // Assume user is not an admin in case of error
+  }
+}
+
 // Cooldown function that checks if the cooldown period has passed
 const isCooldownReady = () =>
 {
@@ -147,5 +171,6 @@ module.exports = {
   removeTag,
   isCooldownReady,
   getLastAnalysisTimestamp,
-  setLastAnalysisTimestamp
+  setLastAnalysisTimestamp,
+  isAdminOfChat
 };

@@ -5,7 +5,8 @@
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
+import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag, isAdminOfChat } from "./helpers/utils";
+import { getPermits } from "./helpers/supabase";
 
 /**
  * Wait for requests to the worker
@@ -158,6 +159,11 @@ async function onCallbackQuery(callbackQuery)
  */
 const onMessage = async (message) =>
 {
+  getPermits()
+  const chatId = message.chat.id;
+  const userId = message.from.id;
+  let isAdmin = await isAdminOfChat(userId, chatId);
+  console.log('Admin check:', isAdmin)
   console.log(`Received message: ${message.text}`);
 
   // Check if cooldown

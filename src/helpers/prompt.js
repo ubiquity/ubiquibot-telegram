@@ -1,8 +1,6 @@
+const TRAINING = `You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue`
+
 const PROMPT = `
-	You are a helpful bot that assists with GitHub issues.
-
-	{ "system": "You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue:" }
-
 	Consider the following criteria:
 	1. If the message describes a clear task and not a regular conversation, consider it suitable for a GitHub issue.
 	2. If the message is not too vague and includes necessary details, it may be suitable for a GitHub issue.
@@ -22,5 +20,6 @@ const PROMPT = `
 	**User Message:** "{messageText}"
 `;
 module.exports = {
-  PROMPT,
+	PROMPT,
+	TRAINING,
 };
