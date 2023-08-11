@@ -4,9 +4,9 @@
 
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
+import { getBotUsername, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag, isAdminOfChat } from "./helpers/utils";
-import { getPermits } from "./helpers/supabase";
+import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
 
 /**
  * Wait for requests to the worker
@@ -71,6 +71,12 @@ const onUpdate = async (update) =>
   {
     await onCallbackQuery(update.callback_query);
   }
+
+  if ("my_chat_member" in update)
+  {
+    // queries to run on installation and removal
+    await onBotInstall(update.my_chat_member);
+  }
 };
 
 /**
@@ -95,11 +101,36 @@ const unRegisterWebhook = async (event) =>
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
 };
 
+const onBotInstall = async (event) =>
+{
+  const status = event.new_chat_member.status;
+  const triggerUserName = event.new_chat_member.user.username;
+  const chatId = event.chat.id;
+  const fromId = event.from.id;
+
+  const botName = await getBotUsername();
+
+  if (botName === triggerUserName) // true if this is a valid bot install and uninstall
+  {
+    switch (status)
+    {
+      case "kicked":
+        isBotAdded(chatId, fromId, "removed")
+        break;
+      case "member":
+        isBotRemoved(chatId, fromId, "added")
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 /**
  * Handle incoming callback_query (inline button press)
  * https://core.telegram.org/bots/api#message
  */
-async function onCallbackQuery(callbackQuery)
+const onCallbackQuery = async (callbackQuery) =>
 {
   const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
   const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
@@ -159,12 +190,13 @@ async function onCallbackQuery(callbackQuery)
  */
 const onMessage = async (message) =>
 {
-  getPermits()
-  const chatId = message.chat.id;
-  const userId = message.from.id;
-  let isAdmin = await isAdminOfChat(userId, chatId);
-  console.log('Admin check:', isAdmin)
   console.log(`Received message: ${message.text}`);
+
+  if (!message.text)
+  {
+    console.log(`Skipping, no message attached`);
+    return;
+  }
 
   // Check if cooldown
   const isReady = isCooldownReady();
