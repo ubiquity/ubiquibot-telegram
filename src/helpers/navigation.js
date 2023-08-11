@@ -2,6 +2,20 @@ const { getGroupDetails } = require("./telegram");
 const { editBotMessage } = require("./triggers");
 const { parseCallData } = require("./utils");
 
+const handleFirstMenu = async (value, chatId, messageId, callbackQuery) =>
+{
+    switch (value)
+    {
+        case 'link_github':
+            console.log(callbackQuery);
+            let res = await editBotMessage(chatId, messageId, `OK\\!, Send me the URL of repository you want to link to this group\\.`);
+            console.log(res)
+            break;
+        default:
+            break;
+    }
+}
+
 /**
  * Handle incoming callback_query (inline button press)
  * https://core.telegram.org/bots/api#message
@@ -12,29 +26,27 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
     const chatId = callbackQuery.message.chat.id;
     const messageId = callbackQuery.message.message_id;
 
-    console.log(callbackQuery)
+    const item = parsedData[parsedData.length - 1]; // select the last calldata
 
-    for (const item of parsedData)
+    // Use the item.key and item.value to generate menu items
+    switch (item.key)
     {
-        // Use the item.key and item.value to generate menu items
-        switch (item.key)
-        {
-            case 'group':
-                const name = await getGroupDetails(item.value)
-                const res = await editBotMessage(chatId, messageId, `Here it your group: ${name} \nWhat do you want to do?`, [{
+        case 'group':
+            const name = await getGroupDetails(item.value)
+            await editBotMessage(chatId, messageId, `Here is your group: *${name}* \nWhat do you want to do?`,
+                [{
                     text: 'Link Github Repo',
                     callback_data: `${callbackQuery.data},menu:link_github`
-                }])
-                console.log(res);
-                break;
-            case 'menu':
-                console.log(`Menu: ${item.value}`);
-                break;
-            // Handle other keys as needed
-            default:
-                console.log(`Unknown key: ${item.key}`);
-                break;
-        }
+                }]
+            )
+            break;
+        case 'menu':
+            await handleFirstMenu(item.value, chatId, messageId, callbackQuery)
+            break;
+        // Handle other keys as needed
+        default:
+            console.log(`Unknown key: ${item.key}`);
+            break;
     }
 }
 

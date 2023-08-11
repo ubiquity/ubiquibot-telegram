@@ -221,6 +221,8 @@ const onMessage = async (message) =>
     return handleSlashCommand(message.text, fromId, chatId)
   }
 
+  if (isPrivate) return; // no functionality in private message
+
   // Check if cooldown
   const isReady = isCooldownReady();
 

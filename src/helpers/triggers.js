@@ -81,7 +81,7 @@ const replyMessage = async (chatId, keyboardValues, text) =>
   ).json();
 };
 
-const editBotMessage = async (chatId, messageId, newText, keyboardValues) =>
+const editBotMessage = async (chatId, messageId, newText, keyboardValues = []) =>
 {
   try
   {
