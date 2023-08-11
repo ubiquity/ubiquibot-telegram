@@ -1,3 +1,4 @@
+const { addTelegramBot, removeTelegramBot } = require("./supabase");
 const { apiUrl } = require("./triggers");
 
 // Check if user is admin of group
@@ -45,14 +46,16 @@ const getBotUsername = async () =>
     }
 }
 
-const isBotAdded = async () =>
+const isBotAdded = async (chatId, fromId, groupName) =>
 {
-
+    console.log('bot added');
+    await addTelegramBot(chatId, fromId, groupName)
 }
 
-const isBotRemoved = async () =>
+const isBotRemoved = async (chatId, fromId) =>
 {
-
+    console.log('bot removed');
+    await removeTelegramBot(chatId, fromId)
 }
 
 module.exports = {

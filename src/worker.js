@@ -107,6 +107,7 @@ const onBotInstall = async (event) =>
   const triggerUserName = event.new_chat_member.user.username;
   const chatId = event.chat.id;
   const fromId = event.from.id;
+  const groupName = event.chat.title
 
   const botName = await getBotUsername();
 
@@ -115,10 +116,13 @@ const onBotInstall = async (event) =>
     switch (status)
     {
       case "kicked":
-        isBotAdded(chatId, fromId, "removed")
+        await isBotRemoved(chatId, fromId)
+        break;
+      case "left":
+        await isBotRemoved(chatId, fromId)
         break;
       case "member":
-        isBotRemoved(chatId, fromId, "added")
+        await isBotAdded(chatId, fromId, groupName)
         break;
       default:
         break;
