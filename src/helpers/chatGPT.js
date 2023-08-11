@@ -44,7 +44,7 @@ const completeGPT3 = async (messageText) =>
       return;
     }
 
-    return removeNewlinesAndExtractValues(data.choices[0].text);
+    return removeNewlinesAndExtractValues(data.choices[0].message.content);
   } catch (e)
   {
     console.log(e.message);

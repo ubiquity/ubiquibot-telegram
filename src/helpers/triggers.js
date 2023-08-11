@@ -81,7 +81,7 @@ const replyMessage = async (chatId, keyboardValues, text) =>
   ).json();
 };
 
-const editBotMessage = async (chatId, messageId, newText) =>
+const editBotMessage = async (chatId, messageId, newText, keyboardValues) =>
 {
   try
   {
@@ -91,12 +91,17 @@ const editBotMessage = async (chatId, messageId, newText) =>
         message_id: messageId,
         text: newText,
         parse_mode: "MarkdownV2",
+        reply_markup: JSON.stringify({
+          inline_keyboard: [
+            keyboardValues
+          ],
+        }),
       })
     );
     return response.json();
   } catch (error)
   {
-    console.error("Error editing message:", error);
+    console.log("Error editing message:", error);
     return null;
   }
 };

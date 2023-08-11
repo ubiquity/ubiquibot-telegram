@@ -47,6 +47,34 @@ const getBotUsername = async () =>
     }
 }
 
+const getGroupDetails = async (chatId) =>
+{
+    const params = {
+        chat_id: chatId,
+    };
+    try
+    {
+        const response = await fetch(apiUrl("getChat", params));
+        const data = await response.json();
+
+        const chat = data.result;
+
+        // Check if the API response contains the bot's username
+        if (data.ok && chat)
+        {
+            const name = chat.title || 'N/A';
+            return name
+        } else
+        {
+            throw new Error('Bot username not found in API response');
+        }
+    } catch (error)
+    {
+        console.log('Error fetching bot username:', error);
+        return null
+    }
+}
+
 const isBotAdded = async (chatId, fromId, groupName) =>
 {
     console.log('bot added');
@@ -104,5 +132,6 @@ module.exports = {
     getBotUsername,
     isBotAdded,
     isBotRemoved,
-    handleSlashCommand
+    handleSlashCommand,
+    getGroupDetails
 }

@@ -57,7 +57,6 @@ const handleWebhook = async (event) =>
  */
 const onUpdate = async (update) =>
 {
-  console.log(update)
   if ("message" in update)
   {
     try
