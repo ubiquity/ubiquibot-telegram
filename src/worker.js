@@ -7,7 +7,7 @@ import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag, slashCommandCheck } from "./helpers/utils";
+import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
 
 /**
  * Wait for requests to the worker
@@ -211,17 +211,14 @@ const onMessage = async (message) =>
   }
 
   // HANDLE SLASH HANDLERS HERE
-  const isSlash = slashCommandCheck(message.text);
   const isPrivate = message.chat.type === "private";
 
-  if (isSlash && isPrivate) // only run slash commands sent privately
+  if (isPrivate) // run prvate messages
   {
     const chatId = message.chat.id; // chat id
     const fromId = message.from.id; // get caller id
     return handleSlashCommand(message.text, fromId, chatId)
   }
-
-  if (isPrivate) return; // no functionality in private message
 
   // Check if cooldown
   const isReady = isCooldownReady();

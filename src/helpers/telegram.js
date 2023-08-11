@@ -1,6 +1,8 @@
+const { handleSetGithubRepo } = require("./navigation");
+const { hasUserSession, getUserSession, deleteUserSession } = require("./session");
 const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId } = require("./supabase");
 const { apiUrl, replyMessage } = require("./triggers");
-const { extractSlashCommand } = require("./utils");
+const { extractSlashCommand, slashCommandCheck } = require("./utils");
 
 // Check if user is admin of group
 const isAdminOfChat = async (userId, chatId) =>
@@ -100,30 +102,59 @@ const listGroupsWithBot = async (from, chatId) =>
         }))
         await replyMessage(
             chatId,
-            keyboardRes,
-            'Choose a group from the list below:'
+            'Choose a group from the list below:',
+            keyboardRes
         )
     } else
     {
         await replyMessage(
             chatId,
-            [],
             'Oops, you don\'t have the bot installed on any of your groups'
         )
     }
 }
 
-const handleSlashCommand = async (text, from, chatId) =>
+const handleSlashCommand = async (text, fromId, chatId) =>
 {
-    const { command } = extractSlashCommand(text);
-
-    switch (command)
+    console.log(fromId, chatId)
+    const isSlash = slashCommandCheck(text);
+    if (isSlash)
     {
-        case '/start':
-            await listGroupsWithBot(from, chatId)
-            break;
-        default:
-            break;
+        const { command } = extractSlashCommand(text);
+
+        switch (command)
+        {
+            case '/start':
+                await listGroupsWithBot(fromId, chatId)
+                break;
+            default:
+                break;
+        }
+    } else
+    {
+        // Check if the user has an active session
+        if (hasUserSession(chatId))
+        {
+            const userContext = getUserSession(chatId);
+
+            // Handle the message based on the user's context
+            switch (userContext)
+            {
+                case 'link_github':
+                    // Process the repository name provided by the user
+                    let res = await handleSetGithubRepo();
+                    if (res)
+                    {
+                        // Clear the user's context after processing
+                        deleteUserSession(chatId);
+                    }
+                    break;
+                // Add more cases for other contexts
+                default:
+                    console.log('User replied:', text);
+                    break;
+            }
+        }
     }
 }
 

@@ -63,7 +63,7 @@ const sendReply = async (chatId, messageId, text) =>
   ).json();
 };
 
-const replyMessage = async (chatId, keyboardValues, text) =>
+const replyMessage = async (chatId, text, keyboardValues = []) =>
 {
   return (
     await fetch(

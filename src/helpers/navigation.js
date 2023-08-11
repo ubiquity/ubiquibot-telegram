@@ -1,15 +1,37 @@
+const { setUserSession } = require("./session");
 const { getGroupDetails } = require("./telegram");
-const { editBotMessage } = require("./triggers");
+const { editBotMessage, replyMessage } = require("./triggers");
 const { parseCallData } = require("./utils");
 
-const handleFirstMenu = async (value, chatId, messageId, callbackQuery) =>
+const handleSetGithubRepo = async (githubUrl) =>
+{
+    const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
+
+    if (!githubUrl.match(githubUrlRegex))
+    {
+        const errorMessage = `Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`;
+        await replyMessage(chatId, errorMessage)
+        return false
+    }
+
+    // Here, you can proceed with sending the GitHub URL to the database and returning a success message
+    // Replace this section with your database logic
+
+    const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
+    await replyMessage(chatId, successMessage, [{
+        text: '⏪ Back to Group List',
+        callback_data: `group_list`
+    }])
+    return true;
+};
+
+const handleFirstMenu = async (value, chatId, messageId) =>
 {
     switch (value)
     {
         case 'link_github':
-            console.log(callbackQuery);
-            let res = await editBotMessage(chatId, messageId, `OK\\!, Send me the URL of repository you want to link to this group\\.`);
-            console.log(res)
+            await editBotMessage(chatId, messageId, `OK\\!, Send the URL of repository you want to link to this group\\.`);
+            setUserSession(chatId, 'link_github')
             break;
         default:
             break;
@@ -41,7 +63,7 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
             )
             break;
         case 'menu':
-            await handleFirstMenu(item.value, chatId, messageId, callbackQuery)
+            await handleFirstMenu(item.value, chatId, messageId)
             break;
         // Handle other keys as needed
         default:
@@ -51,5 +73,6 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
 }
 
 module.exports = {
-    onPrivateCallbackQuery
+    onPrivateCallbackQuery,
+    handleSetGithubRepo
 }
