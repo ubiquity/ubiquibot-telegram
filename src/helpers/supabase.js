@@ -20,6 +20,19 @@ const addTelegramBot = async (chatId, fromId, groupName) =>
     }
 }
 
+const getTelegramBotByFromId = async (fromId) =>
+{
+    try
+    {
+        const { data, error } = await supabase.from("telegram_bot_groups").select().eq('from_id', fromId);
+
+        return { data, error }
+    } catch (error)
+    {
+        console.log(error)
+    }
+}
+
 const removeTelegramBot = async (chatId, fromId) =>
 {
     try
@@ -35,5 +48,6 @@ const removeTelegramBot = async (chatId, fromId) =>
 
 module.exports = {
     addTelegramBot,
-    removeTelegramBot
+    removeTelegramBot,
+    getTelegramBotByFromId
 }

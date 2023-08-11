@@ -1,5 +1,6 @@
-const { addTelegramBot, removeTelegramBot } = require("./supabase");
-const { apiUrl } = require("./triggers");
+const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId } = require("./supabase");
+const { apiUrl, replyMessage } = require("./triggers");
+const { extractSlashCommand } = require("./utils");
 
 // Check if user is admin of group
 const isAdminOfChat = async (userId, chatId) =>
@@ -58,9 +59,50 @@ const isBotRemoved = async (chatId, fromId) =>
     await removeTelegramBot(chatId, fromId)
 }
 
+const listGroupsWithBot = async (from, chatId) =>
+{
+    let res = await getTelegramBotByFromId(from);
+    let groups = res.data;
+
+    if (groups.length > 0)
+    {
+        const keyboardRes = groups.map((e) => ({
+            text: e.group_name,
+            callback_data: `group:${e.id}`
+        }))
+        await replyMessage(
+            chatId,
+            keyboardRes,
+            'Choose a group from the list below:'
+        )
+    } else
+    {
+        await replyMessage(
+            chatId,
+            [],
+            'Oops, you don\'t have the bot installed on any of your groups'
+        )
+    }
+}
+
+const handleSlashCommand = async (text, from, chatId) =>
+{
+    const { command } = extractSlashCommand(text);
+
+    switch (command)
+    {
+        case '/start':
+            await listGroupsWithBot(from, chatId)
+            break;
+        default:
+            break;
+    }
+}
+
 module.exports = {
     isAdminOfChat,
     getBotUsername,
     isBotAdded,
-    isBotRemoved
+    isBotRemoved,
+    handleSlashCommand
 }

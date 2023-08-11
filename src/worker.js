@@ -4,9 +4,10 @@
 
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
-import { getBotUsername, isBotAdded, isBotRemoved } from "./helpers/telegram";
+import { onPrivateCallbackQuery } from "./helpers/navigation";
+import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
+import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag, slashCommandCheck } from "./helpers/utils";
 
 /**
  * Wait for requests to the worker
@@ -56,6 +57,7 @@ const handleWebhook = async (event) =>
  */
 const onUpdate = async (update) =>
 {
+  console.log(update)
   if ("message" in update)
   {
     try
@@ -69,7 +71,14 @@ const onUpdate = async (update) =>
 
   if ("callback_query" in update)
   {
-    await onCallbackQuery(update.callback_query);
+    const isPrivate = update.callback_query.message.chat.type === "private"
+    if (isPrivate)
+    {
+      await onPrivateCallbackQuery(update.callback_query);
+    } else
+    {
+      await onCallbackQuery(update.callback_query);
+    }
   }
 
   if ("my_chat_member" in update)
@@ -200,6 +209,17 @@ const onMessage = async (message) =>
   {
     console.log(`Skipping, no message attached`);
     return;
+  }
+
+  // HANDLE SLASH HANDLERS HERE
+  const isSlash = slashCommandCheck(message.text);
+  const isPrivate = message.chat.type === "private";
+
+  if (isSlash && isPrivate) // only run slash commands sent privately
+  {
+    const chatId = message.chat.id; // chat id
+    const fromId = message.from.id; // get caller id
+    return handleSlashCommand(message.text, fromId, chatId)
   }
 
   // Check if cooldown

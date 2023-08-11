@@ -17,7 +17,7 @@ const completeGPT3 = async (messageText) =>
         },
         {
           role: "user",
-          content: PROMPT.replace(/{messageText}/g, removeTags(messageText)),
+          content: PROMPT.replace(/{messageText}/g, messageText),
         },
       ],
       max_tokens: 1500,

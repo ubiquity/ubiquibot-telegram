@@ -1,9 +1,11 @@
 /**
  * Return url to telegram api, optionally with parameters added
  */
-const apiUrl = (methodName, params = null) => {
+const apiUrl = (methodName, params = null) =>
+{
   let query = "";
-  if (params) {
+  if (params)
+  {
     query = "?" + new URLSearchParams(params).toString();
   }
   return `https://api.telegram.org/bot${TOKEN}/${methodName}${query}`;
@@ -14,11 +16,13 @@ const apiUrl = (methodName, params = null) => {
  * This stops the loading indicator on the button and optionally shows a message
  * https://core.telegram.org/bots/api#sendmessage
  */
-async function answerCallbackQuery(callbackQueryId, text = null) {
+async function answerCallbackQuery(callbackQueryId, text = null)
+{
   const data = {
     callback_query_id: callbackQueryId,
   };
-  if (text) {
+  if (text)
+  {
     data.text = text;
   }
   return (await fetch(apiUrl("answerCallbackQuery", data))).json();
@@ -31,7 +35,8 @@ async function answerCallbackQuery(callbackQueryId, text = null) {
  * messages will not be sent. See escapeMarkdown()
  * https://core.telegram.org/bots/api#sendmessage
  */
-const sendReply = async (chatId, messageId, text) => {
+const sendReply = async (chatId, messageId, text) =>
+{
   return (
     await fetch(
       apiUrl("sendMessage", {
@@ -58,8 +63,28 @@ const sendReply = async (chatId, messageId, text) => {
   ).json();
 };
 
-const editBotMessage = async (chatId, messageId, newText) => {
-  try {
+const replyMessage = async (chatId, keyboardValues, text) =>
+{
+  return (
+    await fetch(
+      apiUrl("sendMessage", {
+        chat_id: chatId,
+        text,
+        parse_mode: "MarkdownV2",
+        reply_markup: JSON.stringify({
+          inline_keyboard: [
+            keyboardValues
+          ],
+        }),
+      })
+    )
+  ).json();
+};
+
+const editBotMessage = async (chatId, messageId, newText) =>
+{
+  try
+  {
     const response = await fetch(
       apiUrl("editMessageText", {
         chat_id: chatId,
@@ -69,14 +94,17 @@ const editBotMessage = async (chatId, messageId, newText) => {
       })
     );
     return response.json();
-  } catch (error) {
+  } catch (error)
+  {
     console.error("Error editing message:", error);
     return null;
   }
 };
 
-const deleteBotMessage = async (chatId, messageId, newText) => {
-  try {
+const deleteBotMessage = async (chatId, messageId, newText) =>
+{
+  try
+  {
     const response = await fetch(
       apiUrl("deleteMessage", {
         chat_id: chatId,
@@ -84,7 +112,8 @@ const deleteBotMessage = async (chatId, messageId, newText) => {
       })
     );
     return response.json();
-  } catch (error) {
+  } catch (error)
+  {
     console.error("Error deleting message:", error);
     return null;
   }
@@ -96,4 +125,5 @@ module.exports = {
   sendReply,
   answerCallbackQuery,
   apiUrl,
+  replyMessage,
 };
