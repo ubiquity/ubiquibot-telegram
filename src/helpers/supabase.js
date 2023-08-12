@@ -10,7 +10,7 @@ const addTelegramBot = async (chatId, fromId, groupName) =>
 
         if (data && data.length > 0)
         {
-            const key = data.id;
+            const key = data[0].id;
             await supabase
                 .from("telegram_bot_groups")
                 .upsert({
@@ -60,15 +60,14 @@ const removeTelegramBot = async (chatId, fromId) =>
     }
 }
 
-const linkGithubRepoToTelegram = async (chatId, fromId, github_repo) =>
+const linkGithubRepoToTelegram = async (fromId, chatId, github_repo) =>
 {
     try
     {
         const { data, error } = await supabase.from("telegram_bot_groups").select().eq('from_id', fromId).eq('id', chatId);
-
         if (data && data.length > 0)
         {
-            const { group_name, from_id, id } = data;
+            const { group_name, from_id, id } = data[0];
             await supabase
                 .from("telegram_bot_groups")
                 .upsert({

@@ -3,13 +3,13 @@ const { getGroupDetails, listGroupsWithBot } = require("./telegram");
 const { editBotMessage } = require("./triggers");
 const { parseCallData } = require("./utils");
 
-const handleFirstMenu = async (value, chatId, messageId) =>
+const handleFirstMenu = async (value, chatId, messageId, groupData) =>
 {
     switch (value)
     {
         case 'link_github':
             await editBotMessage(chatId, messageId, `OK!, Send the URL of repository you want to link to this group.`);
-            setUserSession(chatId, 'link_github')
+            setUserSession(chatId, { v: 'link_github', c: groupData })
             break;
         default:
             break;
@@ -42,7 +42,8 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
             )
             break;
         case 'menu':
-            await handleFirstMenu(item.value, chatId, messageId)
+            const groupData = parsedData[0];
+            await handleFirstMenu(item.value, chatId, messageId, groupData.value)
             break;
         case 'group_list':
             await listGroupsWithBot(fromId, chatId, messageId)

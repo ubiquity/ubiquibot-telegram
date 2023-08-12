@@ -223,7 +223,7 @@ const onMessage = async (message) =>
   {
     const chatId = message.chat.id; // chat id
     const fromId = message.from.id; // get caller id
-    return handleSlashCommand(message.text, fromId, chatId)
+    return handleSlashCommand(isSlash, message.text, fromId, chatId)
   }
 
   if (isSlash) return;

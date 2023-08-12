@@ -1,7 +1,7 @@
 const { hasUserSession, getUserSession, deleteUserSession } = require("./session");
-const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } = require("./supabase");
-const { apiUrl, replyMessage, sendReply, editBotMessage } = require("./triggers");
-const { extractSlashCommand, slashCommandCheck } = require("./utils");
+const { addTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } = require("./supabase");
+const { apiUrl, replyMessage, editBotMessage } = require("./triggers");
+const { extractSlashCommand } = require("./utils");
 
 // Check if user is admin of group
 const isAdminOfChat = async (userId, chatId) =>
@@ -130,7 +130,7 @@ const handleSetGithubRepo = async (fromId, chatId, githubUrl) =>
     if (!match)
     {
         const errorMessage = `Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`;
-        await replyMessage(chatId, errorMessage);
+        await replyMessage(fromId, errorMessage);
         return false
     }
 
@@ -141,16 +141,15 @@ const handleSetGithubRepo = async (fromId, chatId, githubUrl) =>
     await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`)
 
     const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
-    await replyMessage(chatId, successMessage, [{
+    await replyMessage(fromId, successMessage, [{
         text: '« Back to Group List',
         callback_data: `group_list`
     }])
     return true;
 };
 
-const handleSlashCommand = async (text, fromId, chatId) =>
+const handleSlashCommand = async (isSlash, text, fromId, chatId) =>
 {
-    const isSlash = slashCommandCheck(text);
     if (isSlash)
     {
         const { command } = extractSlashCommand(text);
@@ -170,11 +169,11 @@ const handleSlashCommand = async (text, fromId, chatId) =>
         {
             const userContext = getUserSession(chatId);
             // Handle the message based on the user's context
-            switch (userContext)
+            switch (userContext.v)
             {
                 case 'link_github':
                     // Process the repository name provided by the user
-                    const saved = await handleSetGithubRepo(fromId, chatId, text);
+                    const saved = await handleSetGithubRepo(fromId, userContext.c, text);
                     if (saved)
                     {
                         // Clear the user's context after processing
