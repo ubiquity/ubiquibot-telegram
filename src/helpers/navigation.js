@@ -1,36 +1,14 @@
 const { setUserSession } = require("./session");
 const { getGroupDetails } = require("./telegram");
-const { editBotMessage, replyMessage } = require("./triggers");
-const { parseCallData } = require("./utils");
-
-const handleSetGithubRepo = async (githubUrl) =>
-{
-    const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
-
-    if (!githubUrl.match(githubUrlRegex))
-    {
-        const errorMessage = `Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`;
-        await replyMessage(chatId, errorMessage)
-        return false
-    }
-
-    // Here, you can proceed with sending the GitHub URL to the database and returning a success message
-    // Replace this section with your database logic
-
-    const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
-    await replyMessage(chatId, successMessage, [{
-        text: '⏪ Back to Group List',
-        callback_data: `group_list`
-    }])
-    return true;
-};
+const { editBotMessage } = require("./triggers");
+const { parseCallData, escapeTelegramReservedCharacters } = require("./utils");
 
 const handleFirstMenu = async (value, chatId, messageId) =>
 {
     switch (value)
     {
         case 'link_github':
-            await editBotMessage(chatId, messageId, `OK\\!, Send the URL of repository you want to link to this group\\.`);
+            await editBotMessage(chatId, messageId, escapeTelegramReservedCharacters(`OK!, Send the URL of repository you want to link to this group.`));
             setUserSession(chatId, 'link_github')
             break;
         default:
@@ -74,5 +52,4 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
 
 module.exports = {
     onPrivateCallbackQuery,
-    handleSetGithubRepo
 }

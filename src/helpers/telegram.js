@@ -1,8 +1,7 @@
-const { handleSetGithubRepo } = require("./navigation");
 const { hasUserSession, getUserSession, deleteUserSession } = require("./session");
 const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId } = require("./supabase");
 const { apiUrl, replyMessage } = require("./triggers");
-const { extractSlashCommand, slashCommandCheck } = require("./utils");
+const { extractSlashCommand, slashCommandCheck, escapeTelegramReservedCharacters } = require("./utils");
 
 // Check if user is admin of group
 const isAdminOfChat = async (userId, chatId) =>
@@ -114,9 +113,30 @@ const listGroupsWithBot = async (from, chatId) =>
     }
 }
 
+const handleSetGithubRepo = async (chatId, githubUrl) =>
+{
+    const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
+
+    if (!githubUrl.match(githubUrlRegex))
+    {
+        const errorMessage = escapeTelegramReservedCharacters(`Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`);
+        await replyMessage(chatId, errorMessage);
+        return false
+    }
+
+    // Here, you can proceed with sending the GitHub URL to the database and returning a success message
+
+
+    const successMessage = escapeTelegramReservedCharacters(`GitHub repository URL successfully set: ${githubUrl}`);
+    await replyMessage(chatId, successMessage, [{
+        text: 'Back to Group List',
+        callback_data: `group_list`
+    }])
+    return true;
+};
+
 const handleSlashCommand = async (text, fromId, chatId) =>
 {
-    console.log(fromId, chatId)
     const isSlash = slashCommandCheck(text);
     if (isSlash)
     {
@@ -136,14 +156,13 @@ const handleSlashCommand = async (text, fromId, chatId) =>
         if (hasUserSession(chatId))
         {
             const userContext = getUserSession(chatId);
-
             // Handle the message based on the user's context
             switch (userContext)
             {
                 case 'link_github':
                     // Process the repository name provided by the user
-                    let res = await handleSetGithubRepo();
-                    if (res)
+                    const saved = await handleSetGithubRepo(chatId, text);
+                    if (saved)
                     {
                         // Clear the user's context after processing
                         deleteUserSession(chatId);

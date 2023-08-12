@@ -7,7 +7,7 @@ import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
+import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag, slashCommandCheck } from "./helpers/utils";
 
 /**
  * Wait for requests to the worker
@@ -119,17 +119,16 @@ const onBotInstall = async (event) =>
 
   const botName = await getBotUsername();
 
+  console.log(status, chatId, fromId, groupName)
+
   if (botName === triggerUserName) // true if this is a valid bot install and uninstall
   {
     switch (status)
     {
-      case "kicked":
+      case "kicked" || "left":
         await isBotRemoved(chatId, fromId)
         break;
-      case "left":
-        await isBotRemoved(chatId, fromId)
-        break;
-      case "member":
+      case "member" || "added":
         await isBotAdded(chatId, fromId, groupName)
         break;
       default:
@@ -211,6 +210,7 @@ const onMessage = async (message) =>
   }
 
   // HANDLE SLASH HANDLERS HERE
+  const isSlash = slashCommandCheck(message.text);
   const isPrivate = message.chat.type === "private";
 
   if (isPrivate) // run prvate messages
@@ -219,6 +219,8 @@ const onMessage = async (message) =>
     const fromId = message.from.id; // get caller id
     return handleSlashCommand(message.text, fromId, chatId)
   }
+
+  if (isSlash) return;
 
   // Check if cooldown
   const isReady = isCooldownReady();

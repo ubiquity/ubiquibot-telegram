@@ -75,6 +75,25 @@ const extractSlashCommand = (text) =>
   };
 }
 
+const escapeTelegramReservedCharacters = (text) =>
+{
+  const reservedCharacters = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+  const escapeCharacter = '\\';
+
+  const escapedText = text.split('').map(char =>
+  {
+    if (reservedCharacters.includes(char))
+    {
+      return escapeCharacter + char;
+    } else
+    {
+      return char;
+    }
+  });
+
+  return escapedText.join('');
+}
+
 const removeNewlinesAndExtractValues = (text) =>
 {
   // Remove all occurrences of '\n'
@@ -191,5 +210,6 @@ module.exports = {
   setLastAnalysisTimestamp,
   extractSlashCommand,
   slashCommandCheck,
-  parseCallData
+  parseCallData,
+  escapeTelegramReservedCharacters
 };
