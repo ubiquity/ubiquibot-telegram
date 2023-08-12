@@ -37,7 +37,7 @@ async function answerCallbackQuery(callbackQueryId, text = null)
  * messages will not be sent. See escapeMarkdown()
  * https://core.telegram.org/bots/api#sendmessage
  */
-const sendReply = async (chatId, messageId, text) =>
+const sendReply = async (chatId, messageId, text, errored = false) =>
 {
   return (
     await fetch(
@@ -48,7 +48,7 @@ const sendReply = async (chatId, messageId, text) =>
         reply_to_message_id: messageId,
         reply_markup: JSON.stringify({
           inline_keyboard: [
-            [
+            errored ? [] : [
               {
                 text: "Reject",
                 callback_data: `reject_task`,
