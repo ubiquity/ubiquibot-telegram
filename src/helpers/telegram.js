@@ -1,5 +1,5 @@
 const { hasUserSession, getUserSession, deleteUserSession } = require("./session");
-const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId } = require("./supabase");
+const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } = require("./supabase");
 const { apiUrl, replyMessage, sendReply, editBotMessage } = require("./triggers");
 const { extractSlashCommand, slashCommandCheck } = require("./utils");
 
@@ -123,19 +123,22 @@ const listGroupsWithBot = async (from, chatId, messageId) =>
     }
 }
 
-const handleSetGithubRepo = async (chatId, githubUrl) =>
+const handleSetGithubRepo = async (fromId, chatId, githubUrl) =>
 {
     const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
-
-    if (!githubUrl.match(githubUrlRegex))
+    const match = githubUrl.match(githubUrlRegex)
+    if (!match)
     {
         const errorMessage = `Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`;
         await replyMessage(chatId, errorMessage);
         return false
     }
 
-    // Here, you can proceed with sending the GitHub URL to the database and returning a success message
+    const orgName = match[3];
+    const repoName = match[4];
 
+    // Here, you can proceed with sending the GitHub URL to the database and returning a success message
+    await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`)
 
     const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
     await replyMessage(chatId, successMessage, [{
@@ -171,7 +174,7 @@ const handleSlashCommand = async (text, fromId, chatId) =>
             {
                 case 'link_github':
                     // Process the repository name provided by the user
-                    const saved = await handleSetGithubRepo(chatId, text);
+                    const saved = await handleSetGithubRepo(fromId, chatId, text);
                     if (saved)
                     {
                         // Clear the user's context after processing

@@ -6,8 +6,9 @@ const addTelegramBot = async (chatId, fromId, groupName) =>
 {
     try
     {
-        const { data, error } = await supabase.from("telegram_bot_groups").select().eq('from_id', fromId).eq('id', chatId)
-        if (data)
+        const { data, error } = await supabase.from("telegram_bot_groups").select().eq('from_id', fromId).eq('id', chatId);
+
+        if (data && data.length > 0)
         {
             const key = data.id;
             await supabase
@@ -18,7 +19,7 @@ const addTelegramBot = async (chatId, fromId, groupName) =>
                     from_id: fromId,
                     github_repo: data.github_repo
                 })
-        } else if (error)
+        } else if ((data && data.length === 0) || error)
         {
             await supabase.from("telegram_bot_groups").insert({
                 id: chatId,
@@ -59,8 +60,36 @@ const removeTelegramBot = async (chatId, fromId) =>
     }
 }
 
+const linkGithubRepoToTelegram = async (chatId, fromId, github_repo) =>
+{
+    try
+    {
+        const { data, error } = await supabase.from("telegram_bot_groups").select().eq('from_id', fromId).eq('id', chatId);
+
+        if (data && data.length > 0)
+        {
+            const { group_name, from_id, id } = data;
+            await supabase
+                .from("telegram_bot_groups")
+                .upsert({
+                    id,
+                    group_name,
+                    from_id,
+                    github_repo,
+                })
+        } else if (error)
+        {
+            console.log("Error adding github_repo to supabase")
+        }
+    } catch (error)
+    {
+        console.log(error)
+    }
+}
+
 module.exports = {
     addTelegramBot,
     removeTelegramBot,
-    getTelegramBotByFromId
+    getTelegramBotByFromId,
+    linkGithubRepoToTelegram
 }
