@@ -86,9 +86,30 @@ const linkGithubRepoToTelegram = async (fromId, chatId, github_repo) =>
     }
 }
 
+const getRepoByGroupId = async (groupId) =>
+{
+    try
+    {
+        const { data, error } = await supabase.from("telegram_bot_groups").select("github_repo").eq('id', groupId);
+        if (data && data.length > 0)
+        {
+            return data[0]?.github_repo
+        } else if (error)
+        {
+            console.log("Error adding github_repo to supabase")
+            return ""
+        }
+    } catch (error)
+    {
+        console.log(error);
+        return ""
+    }
+}
+
 module.exports = {
     addTelegramBot,
     removeTelegramBot,
     getTelegramBotByFromId,
-    linkGithubRepoToTelegram
+    linkGithubRepoToTelegram,
+    getRepoByGroupId
 }

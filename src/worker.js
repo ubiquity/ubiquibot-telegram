@@ -171,7 +171,7 @@ const onCallbackQuery = async (callbackQuery) =>
 
     const { title, timeEstimate } = extractTaskInfo(messageText); // extract issue info from text
 
-    const { repoName, orgName } = getRepoData(groupId);
+    const { repoName, orgName } = await getRepoData(groupId);
 
     console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
@@ -261,12 +261,16 @@ const onMessage = async (message) =>
   const groupId = message.chat.id; // group id
   const messageId = message.message_id;
 
-  const { repoName, orgName } = getRepoData(groupId);
+  const { repoName, orgName } = await getRepoData(groupId);
 
   if (!repoName || !orgName)
   {
     console.log(`No Github data mapped to channel`);
-    return;
+    return sendReply(
+      groupId,
+      messageId,
+      escapeMarkdown(`No Github mapped to this group, please use the /start command in private chat to set this up`, "*`[]()@/")
+    );
   }
 
   if (issueTitle)

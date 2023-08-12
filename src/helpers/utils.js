@@ -1,4 +1,4 @@
-const { repoMapping } = require("../constants");
+const { getRepoByGroupId } = require("./supabase");
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
@@ -96,13 +96,13 @@ const removeNewlinesAndExtractValues = (text) =>
 /**
  * Get repo data from mapping
  */
-const getRepoData = (groupId) =>
+const getRepoData = async (groupId) =>
 {
-  const data = repoMapping.find((e) => e.group === groupId);
-  if (data.github)
+  const data = await getRepoByGroupId(groupId)
+  if (data)
   {
-    const orgName = data.github.split("/")[0];
-    const repoName = data.github.split("/")[1];
+    const orgName = data.split("/")[0];
+    const repoName = data.split("/")[1];
     return {
       orgName,
       repoName,
