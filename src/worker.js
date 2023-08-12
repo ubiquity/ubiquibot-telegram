@@ -187,11 +187,13 @@ const onCallbackQuery = async (callbackQuery) =>
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage)
 
-    const { data, assignees } = await createIssue(timeEstimate, orgName, repoName, title, tagFreeTitle, messageLink, tagged);
+    const { data, assignees, error } = await createIssue(timeEstimate, orgName, repoName, title, tagFreeTitle, messageLink, tagged);
 
-    console.log(`Issue created: ${data.html_url}`);
+    console.log(`Issue created: ${data.html_url} ${data.message}`);
 
-    const msg = escapeMarkdown(`*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ''}`, "*`[]()");
+    const msg = data.html_url ?
+      `*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ''}` :
+      `Error creating issue on *${orgName}/${repoName}*, Details: *${error || data.message}*`;
 
     await editBotMessage(groupId, messageId, msg);
     return answerCallbackQuery(callbackQuery.id, "issue created!");

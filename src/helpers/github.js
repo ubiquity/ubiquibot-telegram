@@ -70,7 +70,7 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
   } catch (error)
   {
     console.log("Error creating issue:", error);
-    return { data: null, assignees: false };
+    return { data: null, assignees: false, error };
   }
 };
 
