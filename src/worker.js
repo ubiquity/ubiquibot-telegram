@@ -125,10 +125,16 @@ const onBotInstall = async (event) =>
   {
     switch (status)
     {
-      case "kicked" || "left":
+      case "kicked":
         await isBotRemoved(chatId, fromId)
         break;
-      case "member" || "added":
+      case "left":
+        await isBotRemoved(chatId, fromId)
+        break;
+      case "member":
+        await isBotAdded(chatId, fromId, groupName)
+        break;
+      case "added":
         await isBotAdded(chatId, fromId, groupName)
         break;
       default:

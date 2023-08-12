@@ -1,14 +1,14 @@
 const { setUserSession } = require("./session");
 const { getGroupDetails } = require("./telegram");
 const { editBotMessage } = require("./triggers");
-const { parseCallData, escapeTelegramReservedCharacters } = require("./utils");
+const { parseCallData } = require("./utils");
 
 const handleFirstMenu = async (value, chatId, messageId) =>
 {
     switch (value)
     {
         case 'link_github':
-            await editBotMessage(chatId, messageId, escapeTelegramReservedCharacters(`OK!, Send the URL of repository you want to link to this group.`));
+            await editBotMessage(chatId, messageId, `OK!, Send the URL of repository you want to link to this group.`);
             setUserSession(chatId, 'link_github')
             break;
         default:

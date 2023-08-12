@@ -1,7 +1,7 @@
 const { hasUserSession, getUserSession, deleteUserSession } = require("./session");
 const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId } = require("./supabase");
-const { apiUrl, replyMessage } = require("./triggers");
-const { extractSlashCommand, slashCommandCheck, escapeTelegramReservedCharacters } = require("./utils");
+const { apiUrl, replyMessage, sendReply } = require("./triggers");
+const { extractSlashCommand, slashCommandCheck } = require("./utils");
 
 // Check if user is admin of group
 const isAdminOfChat = async (userId, chatId) =>
@@ -80,6 +80,7 @@ const isBotAdded = async (chatId, fromId, groupName) =>
 {
     console.log('bot added');
     await addTelegramBot(chatId, fromId, groupName)
+    await replyMessage(chatId, "Bot successfully installed, please use the /start command in private chat to set it up")
 }
 
 const isBotRemoved = async (chatId, fromId) =>
@@ -119,7 +120,7 @@ const handleSetGithubRepo = async (chatId, githubUrl) =>
 
     if (!githubUrl.match(githubUrlRegex))
     {
-        const errorMessage = escapeTelegramReservedCharacters(`Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`);
+        const errorMessage = `Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`;
         await replyMessage(chatId, errorMessage);
         return false
     }
@@ -127,7 +128,7 @@ const handleSetGithubRepo = async (chatId, githubUrl) =>
     // Here, you can proceed with sending the GitHub URL to the database and returning a success message
 
 
-    const successMessage = escapeTelegramReservedCharacters(`GitHub repository URL successfully set: ${githubUrl}`);
+    const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
     await replyMessage(chatId, successMessage, [{
         text: 'Back to Group List',
         callback_data: `group_list`

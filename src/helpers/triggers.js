@@ -1,3 +1,5 @@
+const { escapeTelegramReservedCharacters } = require("./utils");
+
 /**
  * Return url to telegram api, optionally with parameters added
  */
@@ -41,7 +43,7 @@ const sendReply = async (chatId, messageId, text) =>
     await fetch(
       apiUrl("sendMessage", {
         chat_id: chatId,
-        text,
+        text: escapeTelegramReservedCharacters(text),
         parse_mode: "MarkdownV2",
         reply_to_message_id: messageId,
         reply_markup: JSON.stringify({
@@ -69,7 +71,7 @@ const replyMessage = async (chatId, text, keyboardValues = []) =>
     await fetch(
       apiUrl("sendMessage", {
         chat_id: chatId,
-        text,
+        text: escapeTelegramReservedCharacters(text),
         parse_mode: "MarkdownV2",
         reply_markup: JSON.stringify({
           inline_keyboard: [
@@ -89,7 +91,7 @@ const editBotMessage = async (chatId, messageId, newText, keyboardValues = []) =
       apiUrl("editMessageText", {
         chat_id: chatId,
         message_id: messageId,
-        text: newText,
+        text: escapeTelegramReservedCharacters(newText),
         parse_mode: "MarkdownV2",
         reply_markup: JSON.stringify({
           inline_keyboard: [
