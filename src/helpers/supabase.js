@@ -4,16 +4,29 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const addTelegramBot = async (chatId, fromId, groupName) =>
 {
-    console.log(chatId, fromId, groupName)
     try
     {
-        const { data, error } = await supabase.from("telegram_bot_groups").insert({
-            id: chatId,
-            group_name: groupName,
-            from_id: fromId,
-        })
-        console.log(data, error)
-        return { data, error }
+        const { data, error } = await supabase.from("telegram_bot_groups").select().eq('from_id', fromId).eq('id', chatId)
+        if (data)
+        {
+            const key = data.id;
+            await supabase
+                .from("telegram_bot_groups")
+                .upsert({
+                    id: key,
+                    group_name: groupName,
+                    from_id: fromId,
+                    github_repo: data.github_repo
+                })
+        } else if (error)
+        {
+            await supabase.from("telegram_bot_groups").insert({
+                id: chatId,
+                group_name: groupName,
+                from_id: fromId,
+                github_repo: ""
+            })
+        }
     } catch (error)
     {
         console.log(error)

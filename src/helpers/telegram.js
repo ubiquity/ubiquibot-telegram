@@ -86,7 +86,7 @@ const isBotAdded = async (chatId, fromId, groupName) =>
 const isBotRemoved = async (chatId, fromId) =>
 {
     console.log('bot removed');
-    await removeTelegramBot(chatId, fromId)
+    //await removeTelegramBot(chatId, fromId) // do nothing now
 }
 
 const listGroupsWithBot = async (from, chatId, messageId) =>
