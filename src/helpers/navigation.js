@@ -1,5 +1,5 @@
 const { setUserSession } = require("./session");
-const { getGroupDetails } = require("./telegram");
+const { getGroupDetails, listGroupsWithBot } = require("./telegram");
 const { editBotMessage } = require("./triggers");
 const { parseCallData } = require("./utils");
 
@@ -25,6 +25,7 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
     const parsedData = parseCallData(callbackQuery.data);
     const chatId = callbackQuery.message.chat.id;
     const messageId = callbackQuery.message.message_id;
+    const fromId = callbackQuery.from.id;
 
     const item = parsedData[parsedData.length - 1]; // select the last calldata
 
@@ -43,7 +44,8 @@ const onPrivateCallbackQuery = async (callbackQuery) =>
         case 'menu':
             await handleFirstMenu(item.value, chatId, messageId)
             break;
-        // Handle other keys as needed
+        case 'group_list':
+            await listGroupsWithBot(fromId, chatId, messageId)
         default:
             console.log(`Unknown key: ${item.key}`);
             break;

@@ -1,6 +1,6 @@
 const { hasUserSession, getUserSession, deleteUserSession } = require("./session");
 const { addTelegramBot, removeTelegramBot, getTelegramBotByFromId } = require("./supabase");
-const { apiUrl, replyMessage, sendReply } = require("./triggers");
+const { apiUrl, replyMessage, sendReply, editBotMessage } = require("./triggers");
 const { extractSlashCommand, slashCommandCheck } = require("./utils");
 
 // Check if user is admin of group
@@ -89,7 +89,7 @@ const isBotRemoved = async (chatId, fromId) =>
     await removeTelegramBot(chatId, fromId)
 }
 
-const listGroupsWithBot = async (from, chatId) =>
+const listGroupsWithBot = async (from, chatId, messageId) =>
 {
     let res = await getTelegramBotByFromId(from);
     let groups = res.data;
@@ -100,14 +100,23 @@ const listGroupsWithBot = async (from, chatId) =>
             text: e.group_name,
             callback_data: `group:${e.id}`
         }))
-        await replyMessage(
+        messageId ? await editBotMessage(
+            chatId,
+            messageId,
+            'Choose a group from the list below:',
+            keyboardRes
+        ) : await replyMessage(
             chatId,
             'Choose a group from the list below:',
             keyboardRes
         )
     } else
     {
-        await replyMessage(
+        messageId ? await editBotMessage(
+            chatId,
+            messageId,
+            'Oops, you don\'t have the bot installed on any of your groups'
+        ) : await replyMessage(
             chatId,
             'Oops, you don\'t have the bot installed on any of your groups'
         )
@@ -130,7 +139,7 @@ const handleSetGithubRepo = async (chatId, githubUrl) =>
 
     const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
     await replyMessage(chatId, successMessage, [{
-        text: 'Back to Group List',
+        text: '« Back to Group List',
         callback_data: `group_list`
     }])
     return true;
@@ -184,5 +193,6 @@ module.exports = {
     isBotAdded,
     isBotRemoved,
     handleSlashCommand,
-    getGroupDetails
+    getGroupDetails,
+    listGroupsWithBot
 }
