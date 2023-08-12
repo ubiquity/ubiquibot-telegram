@@ -269,7 +269,7 @@ const onMessage = async (message) =>
     return sendReply(
       groupId,
       messageId,
-      escapeMarkdown(`No Github mapped to this group, please use the /start command in private chat to set this up`, "*`[]()@/"),
+      escapeMarkdown(`No Github mapped to this channel, please use the /start command in private chat to set this up`, "*`[]()@/"),
       true
     );
   }
