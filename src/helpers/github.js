@@ -4,10 +4,8 @@ const { generateGitHubIssueBody } = require("./utils");
  * Get User in Organization
  */
 
-const getGithubUserData = async (orgName, user) =>
-{
-  try
-  {
+const getGithubUserData = async (orgName, user) => {
+  try {
     const apiUrl = `https://api.github.com/orgs/${orgName}/memberships/${user}`;
 
     const response = await fetch(apiUrl, {
@@ -20,26 +18,22 @@ const getGithubUserData = async (orgName, user) =>
     });
     const data = await response.json();
     // check if user exist
-    if (data?.user)
-    {
+    if (data?.user) {
       return [data?.user?.login];
     }
     return [];
-  } catch (error)
-  {
+  } catch (error) {
     console.log("Error creating issue:", error);
     return null;
   }
-}
+};
 
 /**
  * Create Issue on Github
  */
-const createIssue = async (timeEstimate, organization, repository, issueTitle, messageText, messageLink, tagged) =>
-{
+const createIssue = async (timeEstimate, organization, repository, issueTitle, messageText, messageLink, tagged) => {
   console.log("Creating Github Issue:", organization, repository, issueTitle, messageText, messageLink, tagged);
-  try
-  {
+  try {
     const apiUrl = `https://api.github.com/repos/${organization}/${repository}/issues`;
 
     // labels array
@@ -49,7 +43,7 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
 
     // get user if tagged exist
-    const assignees = tagged ? await getGithubUserData(organization, tagged) : []
+    const assignees = tagged ? await getGithubUserData(organization, tagged) : [];
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -62,13 +56,12 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
         title: issueTitle,
         body: issueBody,
         labels,
-        assignees
+        assignees,
       }),
     });
     const data = await response.json();
     return { data, assignees: assignees.length > 0 };
-  } catch (error)
-  {
+  } catch (error) {
     console.log("Error creating issue:", error);
     return { data: null, assignees: false, error };
   }
