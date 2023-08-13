@@ -216,12 +216,12 @@ const onMessage = async (message) => {
   if (isSlash) return;
 
   // Check if cooldown
-  // const isReady = isCooldownReady();
+  const isReady = isCooldownReady();
 
-  // if (!isReady) {
-  //   console.log(`Skipping, bot on cooldown`);
-  //   return;
-  // }
+  if (!isReady) {
+    console.log(`Skipping, bot on cooldown`);
+    return;
+  }
 
   const msgText = cleanMessage(message.text);
 
