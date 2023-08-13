@@ -7,12 +7,14 @@ const addTelegramBot = async (chatId, fromId, groupName) => {
     const { data, error } = await supabase.from("telegram_bot_groups").select().eq("from_id", fromId).eq("id", chatId);
 
     if (data && data.length > 0) {
-      const key = data[0].id;
+      const { github_repo, key, created_at } = data[0].id;
       await supabase.from("telegram_bot_groups").upsert({
         id: key,
         group_name: groupName,
         from_id: fromId,
-        github_repo: data.github_repo,
+        github_repo: github_repo,
+        updated_at: new Date().toUTCString(),
+        created_at: created_at,
       });
     } else if ((data && data.length === 0) || error) {
       await supabase.from("telegram_bot_groups").insert({
@@ -20,6 +22,8 @@ const addTelegramBot = async (chatId, fromId, groupName) => {
         group_name: groupName,
         from_id: fromId,
         github_repo: "",
+        created_at: new Date().toUTCString(),
+        updated_at: new Date().toUTCString(),
       });
     }
   } catch (error) {
