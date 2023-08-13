@@ -5,25 +5,30 @@
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
-import { cleanMessage, isCooldownReady, setLastAnalysisTimestamp, escapeMarkdown, extractTag, extractTaskInfo, generateMessageLink, getRepoData, removeTag } from "./helpers/utils";
+import {
+  cleanMessage,
+  isCooldownReady,
+  setLastAnalysisTimestamp,
+  escapeMarkdown,
+  extractTag,
+  extractTaskInfo,
+  generateMessageLink,
+  getRepoData,
+  removeTag,
+} from "./helpers/utils";
 
 /**
  * Wait for requests to the worker
  */
-addEventListener("fetch", (event) =>
-{
+addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (url.pathname === WEBHOOK)
-  {
+  if (url.pathname === WEBHOOK) {
     event.respondWith(handleWebhook(event));
-  } else if (url.pathname === "/registerWebhook")
-  {
+  } else if (url.pathname === "/registerWebhook") {
     event.respondWith(registerWebhook(event, url, WEBHOOK, SECRET));
-  } else if (url.pathname === "/unRegisterWebhook")
-  {
+  } else if (url.pathname === "/unRegisterWebhook") {
     event.respondWith(unRegisterWebhook(event));
-  } else
-  {
+  } else {
     event.respondWith(new Response("No handler for this request"));
   }
 });
@@ -32,11 +37,9 @@ addEventListener("fetch", (event) =>
  * Handle requests to WEBHOOK
  * https://core.telegram.org/bots/api#update
  */
-const handleWebhook = async (event) =>
-{
+const handleWebhook = async (event) => {
   // Check secret
-  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET)
-  {
+  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
     return new Response("Unauthorized", { status: 403 });
   }
 
@@ -53,21 +56,16 @@ const handleWebhook = async (event) =>
  * supports messages and callback queries (inline button presses)
  * https://core.telegram.org/bots/api#update
  */
-const onUpdate = async (update) =>
-{
-  if ("message" in update)
-  {
-    try
-    {
+const onUpdate = async (update) => {
+  if ("message" in update) {
+    try {
       await onMessage(update.message);
-    } catch (e)
-    {
+    } catch (e) {
       console.log(e);
     }
   }
 
-  if ("callback_query" in update)
-  {
+  if ("callback_query" in update) {
     await onCallbackQuery(update.callback_query);
   }
 };
@@ -76,8 +74,7 @@ const onUpdate = async (update) =>
  * Set webhook to this worker's url
  * https://core.telegram.org/bots/api#setwebhook
  */
-const registerWebhook = async (event, requestUrl, suffix, secret) =>
-{
+const registerWebhook = async (event, requestUrl, suffix, secret) => {
   // https://core.telegram.org/bots/api#setwebhook
   const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`;
   const r = await (await fetch(apiUrl("setWebhook", { url: webhookUrl, secret_token: secret }))).json();
@@ -88,8 +85,7 @@ const registerWebhook = async (event, requestUrl, suffix, secret) =>
  * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
-const unRegisterWebhook = async (event) =>
-{
+const unRegisterWebhook = async (event) => {
   const r = await (await fetch(apiUrl("setWebhook", { url: "" }))).json();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
 };
@@ -98,8 +94,7 @@ const unRegisterWebhook = async (event) =>
  * Handle incoming callback_query (inline button press)
  * https://core.telegram.org/bots/api#message
  */
-async function onCallbackQuery(callbackQuery)
-{
+async function onCallbackQuery(callbackQuery) {
   const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
   const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
   const groupId = callbackQuery.message.chat.id; // group id
@@ -110,13 +105,11 @@ async function onCallbackQuery(callbackQuery)
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
 
   // clicker needs to be the creator
-  if (clickerUsername !== creatorsUsername)
-  {
+  if (clickerUsername !== creatorsUsername) {
     return answerCallbackQuery(callbackQuery.id, "You're not allowed to use this, :task-creator-only");
   }
 
-  if (callbackQuery.data === "create_task")
-  {
+  if (callbackQuery.data === "create_task") {
     // get message link
     const messageLink = generateMessageLink(messageIdReply, groupId);
 
@@ -126,8 +119,7 @@ async function onCallbackQuery(callbackQuery)
 
     console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
-    if (!repoName || !orgName)
-    {
+    if (!repoName || !orgName) {
       console.log(`No Github data mapped to channel`);
       return;
     }
@@ -136,18 +128,20 @@ async function onCallbackQuery(callbackQuery)
     const tagged = extractTag(replyToMessage);
 
     // remove tag from issue body
-    const tagFreeTitle = removeTag(replyToMessage)
+    const tagFreeTitle = removeTag(replyToMessage);
 
     const { data, assignees } = await createIssue(timeEstimate, orgName, repoName, title, tagFreeTitle, messageLink, tagged);
 
     console.log(`Issue created: ${data.html_url}`);
 
-    const msg = escapeMarkdown(`*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ''}`, "*`[]()");
+    const msg = escapeMarkdown(
+      `*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ""}`,
+      "*`[]()"
+    );
 
     await editBotMessage(groupId, messageId, msg);
     return answerCallbackQuery(callbackQuery.id, "issue created!");
-  } else if (callbackQuery.data === "reject_task")
-  {
+  } else if (callbackQuery.data === "reject_task") {
     deleteBotMessage(groupId, messageId);
   }
 }
@@ -156,23 +150,20 @@ async function onCallbackQuery(callbackQuery)
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
  */
-const onMessage = async (message) =>
-{
+const onMessage = async (message) => {
   console.log(`Received message: ${message.text}`);
 
   // Check if cooldown
   const isReady = isCooldownReady();
 
-  if (!isReady)
-  {
+  if (!isReady) {
     console.log(`Skipping, bot on cooldown`);
     return;
   }
 
   const msgText = cleanMessage(message.text);
 
-  if (msgText === "")
-  {
+  if (msgText === "") {
     console.log(`Skipping, message is empty`);
     console.log(message);
     return;
@@ -181,8 +172,7 @@ const onMessage = async (message) =>
   // Analyze the message with ChatGPT
   const { issueTitle, timeEstimate } = await completeGPT3(msgText);
 
-  if (!issueTitle)
-  {
+  if (!issueTitle) {
     console.log(`No valid task found`);
     return;
   }
@@ -195,18 +185,12 @@ const onMessage = async (message) =>
 
   const { repoName, orgName } = getRepoData(groupId);
 
-  if (!repoName || !orgName)
-  {
+  if (!repoName || !orgName) {
     console.log(`No Github data mapped to channel`);
     return;
   }
 
-  if (issueTitle)
-  {
-    return sendReply(
-      groupId,
-      messageId,
-      escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/")
-    );
+  if (issueTitle) {
+    return sendReply(groupId, messageId, escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/"));
   }
 };
