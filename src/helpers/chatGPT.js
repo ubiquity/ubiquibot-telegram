@@ -1,15 +1,13 @@
 const { removeNewlinesAndExtractValues } = require("./utils");
 const { PROMPT, TRAINING } = require("./prompt");
 
-const completeGPT3 = async (messageText) =>
-{
-  try
-  {
+const completeGPT3 = async (messageText) => {
+  try {
     const apiKey = OPENAI_API_KEY;
     const apiUrl = "https://api.openai.com/v1/chat/completions";
 
     const requestBody = {
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -38,15 +36,13 @@ const completeGPT3 = async (messageText) =>
 
     console.log(data); // log raw data
 
-    if (data?.error)
-    {
+    if (data?.error) {
       console.log(`ChatGPT Error: ${data?.error}`);
       return;
     }
 
     return removeNewlinesAndExtractValues(data.choices[0].message.content);
-  } catch (e)
-  {
+  } catch (e) {
     console.log(e.message);
     return {
       issueTitle: null,

@@ -44,31 +44,29 @@ function extractTag(text) {
 }
 
 // Function to check if text begins with a slash
-function slashCommandCheck(text)
-{
-  return text.startsWith('/');
+function slashCommandCheck(text) {
+  return text.startsWith("/");
 }
 
 // Function to extract the command and extra text
-const extractSlashCommand = (text) =>
-{
+const extractSlashCommand = (text) => {
   // Remove leading and trailing spaces
   const trimmedText = text.trim();
 
   // Split the text into parts using the first space as a separator
-  const parts = trimmedText.split(' ');
+  const parts = trimmedText.split(" ");
 
   // The first part will be the command (starts with a slash)
-  const command = parts[0].startsWith('/') ? parts[0] : null;
+  const command = parts[0].startsWith("/") ? parts[0] : null;
 
   // The rest of the parts will be considered as extra text
-  const extraText = parts.slice(1).join(' ');
+  const extraText = parts.slice(1).join(" ");
 
   return {
     command: command,
-    extraText: extraText
+    extraText: extraText,
   };
-}
+};
 
 const removeNewlinesAndExtractValues = (text) => {
   // Remove all occurrences of '\n'
@@ -90,11 +88,9 @@ const removeNewlinesAndExtractValues = (text) => {
 /**
  * Get repo data from mapping
  */
-const getRepoData = async (groupId) =>
-{
-  const data = await getRepoByGroupId(groupId)
-  if (data)
-  {
+const getRepoData = async (groupId) => {
+  const data = await getRepoByGroupId(groupId);
+  if (data) {
     const orgName = data.split("/")[0];
     const repoName = data.split("/")[1];
     return {
@@ -137,19 +133,17 @@ const extractTaskInfo = (text) => {
   }
 };
 
-const parseCallData = (callData) =>
-{
-  const parts = callData.split(','); // Split by comma
+const parseCallData = (callData) => {
+  const parts = callData.split(","); // Split by comma
   const result = [];
 
-  for (const part of parts)
-  {
-    const [key, value] = part.split(':'); // Split by colon
+  for (const part of parts) {
+    const [key, value] = part.split(":"); // Split by colon
     result.push({ key: key, value: value });
   }
 
   return result;
-}
+};
 
 // Cooldown function that checks if the cooldown period has passed
 const isCooldownReady = () => {
@@ -178,5 +172,5 @@ module.exports = {
   setLastAnalysisTimestamp,
   extractSlashCommand,
   slashCommandCheck,
-  parseCallData
+  parseCallData,
 };

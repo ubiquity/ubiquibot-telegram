@@ -1,4 +1,4 @@
-const TRAINING = `You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue`
+const TRAINING = `You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue`;
 
 const PROMPT = `
 	Consider the following criteria:
@@ -20,6 +20,6 @@ const PROMPT = `
 	**User Message:** "{messageText}"
 `;
 module.exports = {
-	PROMPT,
-	TRAINING,
+  PROMPT,
+  TRAINING,
 };
