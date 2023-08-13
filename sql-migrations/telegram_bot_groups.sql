@@ -6,4 +6,4 @@ CREATE TABLE telegram_bot_groups (
     github_repo text
 )
 
-ALTER TABLE telegram_bot_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE telegram_bot_groups ENABLE ROW LEVEL SECURITY
