@@ -1,4 +1,4 @@
-const PROMPT = `
+export const PROMPT = `
 	You are a helpful bot that assists with GitHub issues.
 
 	{ "system": "You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue:" }
@@ -21,6 +21,7 @@ const PROMPT = `
 
 	**User Message:** "{messageText}"
 `;
-module.exports = {
+
+export default {
   PROMPT,
 };

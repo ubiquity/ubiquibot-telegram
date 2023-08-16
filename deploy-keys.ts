@@ -1,7 +1,8 @@
-const { spawn } = require("child_process");
-const fs = require("fs");
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import fs from "fs";
+import { Readable } from "stream";
 
-async function readEnvironmentFile() {
+export const readEnvironmentFile = async () => {
   try {
     const environmentData = JSON.parse(fs.readFileSync("environment.json", "utf8"));
     const keys = Object.keys(environmentData);
@@ -27,9 +28,9 @@ async function readEnvironmentFile() {
   } catch (err) {
     console.error("Error reading or executing commands:", err);
   }
-}
+};
 
-function waitForEvent(emitter, event) {
+export const waitForEvent = (emitter: Readable | ChildProcessWithoutNullStreams, event: string) => {
   return new Promise((resolve) => {
     emitter.on(event, (data) => {
       console.log(data.toString());
@@ -37,10 +38,10 @@ function waitForEvent(emitter, event) {
     emitter.once("error", (error) => {
       console.error(error.toString());
     });
-    emitter.once("close", (code) => {
+    emitter.once("close", (code: number) => {
       resolve(code);
     });
   });
-}
+};
 
-readEnvironmentFile();
+void readEnvironmentFile();

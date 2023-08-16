@@ -1,12 +1,14 @@
+import { ApiParam, DataType } from "../types/Basic";
+
 /**
  * Return url to telegram api, optionally with parameters added
  */
-const apiUrl = (methodName, params = null) => {
+export const apiUrl = (methodName: string, params: ApiParam | null) => {
   let query = "";
-  if (params) {
-    query = "?" + new URLSearchParams(params).toString();
+  if (params !== null) {
+    query = "?" + new URLSearchParams(params.toString()).toString();
   }
-  return `https://api.telegram.org/bot${TOKEN}/${methodName}${query}`;
+  return `https://api.telegram.org/bot${process.env.TOKEN}/${methodName}${query}`;
 };
 
 /**
@@ -14,15 +16,15 @@ const apiUrl = (methodName, params = null) => {
  * This stops the loading indicator on the button and optionally shows a message
  * https://core.telegram.org/bots/api#sendmessage
  */
-async function answerCallbackQuery(callbackQueryId, text = null) {
-  const data = {
+export const answerCallbackQuery = async (callbackQueryId: number, text: string | null) => {
+  const data: DataType = {
     callback_query_id: callbackQueryId,
   };
-  if (text) {
+  if (text !== null) {
     data.text = text;
   }
   return (await fetch(apiUrl("answerCallbackQuery", data))).json();
-}
+};
 
 /**
  * Send text message formatted with MarkdownV2-style
@@ -31,7 +33,7 @@ async function answerCallbackQuery(callbackQueryId, text = null) {
  * messages will not be sent. See escapeMarkdown()
  * https://core.telegram.org/bots/api#sendmessage
  */
-const sendReply = async (chatId, messageId, text) => {
+export const sendReply = async (chatId: number, messageId: number, text: string) => {
   return (
     await fetch(
       apiUrl("sendMessage", {
@@ -58,7 +60,7 @@ const sendReply = async (chatId, messageId, text) => {
   ).json();
 };
 
-const editBotMessage = async (chatId, messageId, newText) => {
+export const editBotMessage = async (chatId: number, messageId: number, newText: string) => {
   try {
     const response = await fetch(
       apiUrl("editMessageText", {
@@ -75,7 +77,7 @@ const editBotMessage = async (chatId, messageId, newText) => {
   }
 };
 
-const deleteBotMessage = async (chatId, messageId, newText) => {
+export const deleteBotMessage = async (chatId: number, messageId: number, newText?: string) => {
   try {
     const response = await fetch(
       apiUrl("deleteMessage", {
@@ -90,7 +92,7 @@ const deleteBotMessage = async (chatId, messageId, newText) => {
   }
 };
 
-module.exports = {
+export default {
   deleteBotMessage,
   editBotMessage,
   sendReply,

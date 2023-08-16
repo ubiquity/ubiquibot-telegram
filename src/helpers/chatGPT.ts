@@ -1,9 +1,10 @@
-const { removeNewlinesAndExtractValues } = require("./utils");
-const { PROMPT } = require("./prompt");
+import { removeNewlinesAndExtractValues } from "./utils";
+import { PROMPT } from "./prompt";
+import { ErrorType } from "../types/Basic";
 
-const completeGPT3 = async (messageText) => {
+export const completeGPT3 = async (messageText: string) => {
   try {
-    const apiKey = OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     const apiUrl = "https://api.openai.com/v1/completions";
 
     const requestBody = {
@@ -32,8 +33,8 @@ const completeGPT3 = async (messageText) => {
     }
 
     return removeNewlinesAndExtractValues(data.choices[0].text);
-  } catch (e) {
-    console.log(e.message);
+  } catch (e: unknown) {
+    console.log((e as ErrorType).message);
     return {
       issueTitle: null,
       timeEstimate: null,
@@ -41,6 +42,6 @@ const completeGPT3 = async (messageText) => {
   }
 };
 
-module.exports = {
+export default {
   completeGPT3,
 };
