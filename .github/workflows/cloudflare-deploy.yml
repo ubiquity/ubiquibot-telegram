@@ -52,6 +52,5 @@ jobs:
           echo "$OPENAI_API_KEY" | wrangler secret put OPENAI_API_KEY
           echo "$DEFAULT_PRIORITY" | wrangler secret put DEFAULT_PRIORITY
           echo "$INSTALLATION_TOKEN" | wrangler secret put INSTALLATION_TOKEN
-          echo "" | wrangler secret put GITHUB_PAT
 
           yarn deploy
