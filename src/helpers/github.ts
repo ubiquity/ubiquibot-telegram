@@ -1,17 +1,17 @@
-const { generateGitHubIssueBody } = require("./utils");
+import { generateGitHubIssueBody } from "./utils";
 
 /**
  * Get User in Organization
  */
 
-const getGithubUserData = async (orgName, user) => {
+export const getGithubUserData = async (orgName: string, user: string) => {
   try {
     const apiUrl = `https://api.github.com/orgs/${orgName}/memberships/${user}`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `token ${GITHUB_PAT}`,
+        Authorization: `token ${process.env.GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },
@@ -31,7 +31,15 @@ const getGithubUserData = async (orgName, user) => {
 /**
  * Create Issue on Github
  */
-const createIssue = async (timeEstimate, organization, repository, issueTitle, messageText, messageLink, tagged) => {
+export const createIssue = async (
+  timeEstimate: string,
+  organization: string,
+  repository: string,
+  issueTitle: string,
+  messageText: string,
+  messageLink: string,
+  tagged: string
+) => {
   console.log("Creating Github Issue:", organization, repository, issueTitle, messageText, messageLink, tagged);
   try {
     const apiUrl = `https://api.github.com/repos/${organization}/${repository}/issues`;
@@ -48,7 +56,7 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${INSTALLATION_TOKEN || GITHUB_PAT}`,
+        Authorization: `token ${process.env.INSTALLATION_TOKEN || process.env.GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },
@@ -60,13 +68,13 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
       }),
     });
     const data = await response.json();
-    return { data, assignees: assignees.length > 0 };
+    return { data, assignees: assignees !== null && assignees.length > 0 };
   } catch (error) {
     console.log("Error creating issue:", error);
     return { data: null, assignees: false };
   }
 };
 
-module.exports = {
+export default {
   createIssue,
 };

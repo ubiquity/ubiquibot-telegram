@@ -16,20 +16,22 @@ import {
   getRepoData,
   removeTag,
 } from "./helpers/utils";
+import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, UpdateType } from "./types/Basic";
 
 /**
  * Wait for requests to the worker
  */
-addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-  if (url.pathname === WEBHOOK) {
-    event.respondWith(handleWebhook(event));
+addEventListener("fetch", async (event: Event) => {
+  const ev = event as FetchEventType;
+  const url = new URL(ev.request.url);
+  if (url.pathname === process.env.WEBHOOK) {
+    await ev.respondWith(handleWebhook(ev as ExtendableEventType));
   } else if (url.pathname === "/registerWebhook") {
-    event.respondWith(registerWebhook(event, url, WEBHOOK, SECRET));
+    await ev.respondWith(registerWebhook(event, url, process.env.WEBHOOK || "", process.env.SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
-    event.respondWith(unRegisterWebhook(event));
+    await ev.respondWith(unRegisterWebhook(event));
   } else {
-    event.respondWith(new Response("No handler for this request"));
+    await ev.respondWith(new Response("No handler for this request"));
   }
 });
 
@@ -37,9 +39,9 @@ addEventListener("fetch", (event) => {
  * Handle requests to WEBHOOK
  * https://core.telegram.org/bots/api#update
  */
-const handleWebhook = async (event) => {
+const handleWebhook = async (event: ExtendableEventType) => {
   // Check secret
-  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
+  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== process.env.SECRET) {
     return new Response("Unauthorized", { status: 403 });
   }
 
@@ -56,7 +58,7 @@ const handleWebhook = async (event) => {
  * supports messages and callback queries (inline button presses)
  * https://core.telegram.org/bots/api#update
  */
-const onUpdate = async (update) => {
+const onUpdate = async (update: UpdateType) => {
   if ("message" in update) {
     try {
       await onMessage(update.message);
@@ -74,7 +76,7 @@ const onUpdate = async (update) => {
  * Set webhook to this worker's url
  * https://core.telegram.org/bots/api#setwebhook
  */
-const registerWebhook = async (event, requestUrl, suffix, secret) => {
+const registerWebhook = async (event: Event, requestUrl: URL, suffix: string, secret: string) => {
   // https://core.telegram.org/bots/api#setwebhook
   const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`;
   const r = await (await fetch(apiUrl("setWebhook", { url: webhookUrl, secret_token: secret }))).json();
@@ -85,7 +87,7 @@ const registerWebhook = async (event, requestUrl, suffix, secret) => {
  * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
-const unRegisterWebhook = async (event) => {
+const unRegisterWebhook = async (event: Event) => {
   const r = await (await fetch(apiUrl("setWebhook", { url: "" }))).json();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
 };
@@ -94,7 +96,7 @@ const unRegisterWebhook = async (event) => {
  * Handle incoming callback_query (inline button press)
  * https://core.telegram.org/bots/api#message
  */
-async function onCallbackQuery(callbackQuery) {
+async function onCallbackQuery(callbackQuery: CallbackQueryType) {
   const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
   const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
   const groupId = callbackQuery.message.chat.id; // group id
@@ -113,11 +115,11 @@ async function onCallbackQuery(callbackQuery) {
     // get message link
     const messageLink = generateMessageLink(messageIdReply, groupId);
 
-    const { title, timeEstimate } = extractTaskInfo(messageText); // extract issue info from text
+    const taskInfo = extractTaskInfo(messageText);
 
     const { repoName, orgName } = getRepoData(groupId);
 
-    console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
+    console.log(`Check: ${taskInfo?.title}, ${taskInfo?.timeEstimate} ${orgName}:${repoName}`);
 
     if (!repoName || !orgName) {
       console.log(`No Github data mapped to channel`);
@@ -130,19 +132,27 @@ async function onCallbackQuery(callbackQuery) {
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage);
 
-    const { data, assignees } = await createIssue(timeEstimate, orgName, repoName, title, tagFreeTitle, messageLink, tagged);
+    const { data, assignees } = await createIssue(
+      taskInfo?.timeEstimate || "",
+      orgName,
+      repoName,
+      taskInfo?.title || "",
+      tagFreeTitle,
+      messageLink,
+      tagged || ""
+    );
 
     console.log(`Issue created: ${data.html_url}`);
 
     const msg = escapeMarkdown(
-      `*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ""}`,
+      `*Issue created: [Check it out here](${data.html_url})* with time estimate *${taskInfo?.timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ""}`,
       "*`[]()"
     );
 
     await editBotMessage(groupId, messageId, msg);
     return answerCallbackQuery(callbackQuery.id, "issue created!");
   } else if (callbackQuery.data === "reject_task") {
-    deleteBotMessage(groupId, messageId);
+    await deleteBotMessage(groupId, messageId);
   }
 }
 
@@ -150,7 +160,7 @@ async function onCallbackQuery(callbackQuery) {
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
  */
-const onMessage = async (message) => {
+const onMessage = async (message: MessageType) => {
   console.log(`Received message: ${message.text}`);
 
   // Check if cooldown
@@ -170,12 +180,14 @@ const onMessage = async (message) => {
   }
 
   // Analyze the message with ChatGPT
-  const { issueTitle, timeEstimate } = await completeGPT3(msgText);
+  const GPT3Info = await completeGPT3(msgText);
 
-  if (!issueTitle) {
+  if (GPT3Info == undefined || GPT3Info.issueTitle == null) {
     console.log(`No valid task found`);
     return;
   }
+
+  const { issueTitle, timeEstimate } = GPT3Info;
 
   // Update the last analysis timestamp upon successful analysis
   setLastAnalysisTimestamp(Date.now());

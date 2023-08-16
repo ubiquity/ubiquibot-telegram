@@ -10,7 +10,7 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "start": "wrangler dev",
-    "setup-key": "node ./deploy-keys.js",
+    "setup-key": "tsx ./deploy-keys.ts",
     "format": "run-s format:prettier format:lint",
     "format:lint": "eslint --fix .",
     "format:prettier": "prettier --write ."
