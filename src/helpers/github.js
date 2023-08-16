@@ -63,7 +63,7 @@ const createIssue = async (timeEstimate, organization, repository, issueTitle, m
     return { data, assignees: assignees.length > 0 };
   } catch (error) {
     console.log("Error creating issue:", error);
-    return { data: null, assignees: false, error };
+    return { data: null, assignees: false };
   }
 };
 

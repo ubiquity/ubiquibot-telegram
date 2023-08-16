@@ -1,26 +1,16 @@
 const { removeNewlinesAndExtractValues } = require("./utils");
-const { PROMPT, TRAINING } = require("./prompt");
+const { PROMPT } = require("./prompt");
 
 const completeGPT3 = async (messageText) => {
   try {
     const apiKey = OPENAI_API_KEY;
-    const apiUrl = "https://api.openai.com/v1/chat/completions";
+    const apiUrl = "https://api.openai.com/v1/completions";
 
     const requestBody = {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: TRAINING,
-        },
-        {
-          role: "user",
-          content: PROMPT.replace(/{messageText}/g, messageText),
-        },
-      ],
-      max_tokens: 1500,
-      temperature: 0,
-      stream: false,
+      model: "text-davinci-003",
+      prompt: PROMPT.replace(/{messageText}/g, messageText),
+      max_tokens: 1000,
+      temperature: 1, // Adjust temperature as needed
     };
 
     const response = await fetch(apiUrl, {
@@ -41,7 +31,7 @@ const completeGPT3 = async (messageText) => {
       return;
     }
 
-    return removeNewlinesAndExtractValues(data.choices[0].message.content);
+    return removeNewlinesAndExtractValues(data.choices[0].text);
   } catch (e) {
     console.log(e.message);
     return {
