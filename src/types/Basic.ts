@@ -25,6 +25,10 @@ export type MessageType = {
   text: string;
   chat: {
     id: number;
+    type: string;
+  };
+  from: {
+    id: number;
   };
 };
 
@@ -33,6 +37,7 @@ export type CallbackQueryType = {
   data: string;
   from: {
     username: string;
+    id: number;
   };
   message: {
     reply_to_message: {
@@ -44,15 +49,43 @@ export type CallbackQueryType = {
     };
     chat: {
       id: number;
+      type: string;
     };
     message_id: number;
     text: string;
   };
 };
 
+export type ParsedDataType = {
+  key: string;
+  value: number | string;
+};
+
+export type KeyboardDataType = {
+  text: string;
+  callback_data: string;
+};
+
+export type MyChatQueryType = {
+  new_chat_member: {
+    status: string;
+    user: {
+      username: string;
+    };
+  };
+  chat: {
+    id: number;
+    title: string;
+  };
+  from: {
+    id: number;
+  };
+};
+
 export type UpdateType = {
   message: MessageType;
   callback_query: CallbackQueryType;
+  my_chat_member: MyChatQueryType;
 };
 
 export interface FetchEventType extends Event {
@@ -66,4 +99,11 @@ export interface ExtendableEventType extends FetchEventType {
 
 export type ErrorType = {
   message: string;
+};
+
+export type TaskInfoType = {
+  title: string | null;
+  orgName: string | null;
+  repoName: string | null;
+  timeEstimate: string | null;
 };

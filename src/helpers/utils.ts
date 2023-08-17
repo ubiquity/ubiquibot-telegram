@@ -1,4 +1,6 @@
 import { repoMapping } from "../constants";
+import { ParsedDataType, TaskInfoType } from "../types/Basic";
+import { getRepoByGroupId } from "./supabase";
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
@@ -63,11 +65,11 @@ export const removeNewlinesAndExtractValues = (text: string) => {
 /**
  * Get repo data from mapping
  */
-export const getRepoData = (groupId: number) => {
-  const data = repoMapping.find((e) => e.group === groupId);
-  if (data !== undefined && data.github) {
-    const orgName = data.github.split("/")[0];
-    const repoName = data.github.split("/")[1];
+export const getRepoData = async (groupId: number) => {
+  const data = await getRepoByGroupId(groupId);
+  if (data) {
+    const orgName = data.split("/")[0];
+    const repoName = data.split("/")[1];
     return {
       orgName,
       repoName,
@@ -90,7 +92,7 @@ export const generateGitHubIssueBody = (interceptedMessage: string, telegramMess
   return `${quotedMessage}${footer}`;
 };
 
-export const extractTaskInfo = (text: string) => {
+export const extractTaskInfo = (text: string): TaskInfoType => {
   const regex = /"(.*?)" on (.*?)\/(.*?) with time estimate (.+?)$/;
   const match = text.match(regex);
   console.log(match);
@@ -104,8 +106,38 @@ export const extractTaskInfo = (text: string) => {
       timeEstimate,
     };
   } else {
-    return null;
+    return {
+      title: null,
+      orgName: null,
+      repoName: null,
+      timeEstimate: null,
+    };
   }
+};
+
+// Function to check if text begins with a slash
+export const slashCommandCheck = (text: string) => {
+  return text.startsWith("/");
+};
+
+// Function to extract the command and extra text
+export const extractSlashCommand = (text: string) => {
+  // Remove leading and trailing spaces
+  const trimmedText = text.trim();
+
+  // Split the text into parts using the first space as a separator
+  const parts = trimmedText.split(" ");
+
+  // The first part will be the command (starts with a slash)
+  const command = parts[0].startsWith("/") ? parts[0] : null;
+
+  // The rest of the parts will be considered as extra text
+  const extraText = parts.slice(1).join(" ");
+
+  return {
+    command: command,
+    extraText: extraText,
+  };
 };
 
 // Cooldown function that checks if the cooldown period has passed
@@ -116,6 +148,18 @@ export const isCooldownReady = () => {
 
 export const setLastAnalysisTimestamp = (timestamp: number) => {
   lastAnalysisTimestamp = timestamp;
+};
+
+export const parseCallData = (callData: string): ParsedDataType[] => {
+  const parts = callData.split(","); // Split by comma
+  const result = [];
+
+  for (const part of parts) {
+    const [key, value] = part.split(":"); // Split by colon
+    result.push({ key: key, value: value });
+  }
+
+  return result;
 };
 
 export const getLastAnalysisTimestamp = () => lastAnalysisTimestamp;

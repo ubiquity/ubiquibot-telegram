@@ -1,17 +1,27 @@
 import { removeNewlinesAndExtractValues } from "./utils";
-import { PROMPT } from "./prompt";
+import { PROMPT, TRAINING } from "./prompt";
 import { ErrorType } from "../types/Basic";
 
 export const completeGPT3 = async (messageText: string) => {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    const apiUrl = "https://api.openai.com/v1/completions";
+    const apiKey = OPENAI_API_KEY;
+    const apiUrl = "https://api.openai.com/v1/chat/completions";
 
     const requestBody = {
-      model: "text-davinci-003",
-      prompt: PROMPT.replace(/{messageText}/g, messageText),
-      max_tokens: 1000,
-      temperature: 1, // Adjust temperature as needed
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: TRAINING,
+        },
+        {
+          role: "user",
+          content: PROMPT.replace(/{messageText}/g, messageText),
+        },
+      ],
+      max_tokens: 1500,
+      temperature: 0,
+      stream: false,
     };
 
     const response = await fetch(apiUrl, {
@@ -32,8 +42,8 @@ export const completeGPT3 = async (messageText: string) => {
       return;
     }
 
-    return removeNewlinesAndExtractValues(data.choices[0].text);
-  } catch (e: unknown) {
+    return removeNewlinesAndExtractValues(data.choices[0].message.content);
+  } catch (e) {
     console.log((e as ErrorType).message);
     return {
       issueTitle: null,

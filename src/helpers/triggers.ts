@@ -1,14 +1,15 @@
-import { ApiParam, DataType } from "../types/Basic";
+import { ApiParam, DataType, KeyboardDataType } from "../types/Basic";
+import { escapeMarkdown } from "./utils";
 
 /**
  * Return url to telegram api, optionally with parameters added
  */
-export const apiUrl = (methodName: string, params: ApiParam | null) => {
+export const apiUrl = (methodName: string, params: ApiParam | null = null) => {
   let query = "";
   if (params !== null) {
-    query = "?" + new URLSearchParams(params.toString()).toString();
+    query = "?" + new URLSearchParams(params as string).toString();
   }
-  return `https://api.telegram.org/bot${process.env.TOKEN}/${methodName}${query}`;
+  return `https://api.telegram.org/bot${TOKEN}/${methodName}${query}`;
 };
 
 /**
@@ -33,7 +34,7 @@ export const answerCallbackQuery = async (callbackQueryId: number, text: string 
  * messages will not be sent. See escapeMarkdown()
  * https://core.telegram.org/bots/api#sendmessage
  */
-export const sendReply = async (chatId: number, messageId: number, text: string) => {
+export const sendReply = async (chatId: number, messageId: number, text: string, errored = false) => {
   return (
     await fetch(
       apiUrl("sendMessage", {
@@ -43,16 +44,18 @@ export const sendReply = async (chatId: number, messageId: number, text: string)
         reply_to_message_id: messageId,
         reply_markup: JSON.stringify({
           inline_keyboard: [
-            [
-              {
-                text: "Reject",
-                callback_data: `reject_task`,
-              },
-              {
-                text: "Create Task",
-                callback_data: `create_task`,
-              },
-            ],
+            errored
+              ? []
+              : [
+                  {
+                    text: "Reject",
+                    callback_data: `reject_task`,
+                  },
+                  {
+                    text: "Create Task",
+                    callback_data: `create_task`,
+                  },
+                ],
           ],
         }),
       })
@@ -60,14 +63,32 @@ export const sendReply = async (chatId: number, messageId: number, text: string)
   ).json();
 };
 
-export const editBotMessage = async (chatId: number, messageId: number, newText: string) => {
+export const replyMessage = async (chatId: number, text: string, keyboardValues: KeyboardDataType[] = []) => {
+  return (
+    await fetch(
+      apiUrl("sendMessage", {
+        chat_id: chatId,
+        text: escapeMarkdown(text, "*`[]()@"),
+        parse_mode: "MarkdownV2",
+        reply_markup: JSON.stringify({
+          inline_keyboard: [keyboardValues],
+        }),
+      })
+    )
+  ).json();
+};
+
+export const editBotMessage = async (chatId: number, messageId: number, newText: string, keyboardValues: KeyboardDataType[] = []) => {
   try {
     const response = await fetch(
       apiUrl("editMessageText", {
         chat_id: chatId,
         message_id: messageId,
-        text: newText,
+        text: escapeMarkdown(newText, "*`[]()@"),
         parse_mode: "MarkdownV2",
+        reply_markup: JSON.stringify({
+          inline_keyboard: [keyboardValues],
+        }),
       })
     );
     return response.json();
@@ -77,7 +98,7 @@ export const editBotMessage = async (chatId: number, messageId: number, newText:
   }
 };
 
-export const deleteBotMessage = async (chatId: number, messageId: number, newText?: string) => {
+export const deleteBotMessage = async (chatId: number, messageId: number) => {
   try {
     const response = await fetch(
       apiUrl("deleteMessage", {
