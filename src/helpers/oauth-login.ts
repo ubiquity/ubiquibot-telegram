@@ -1,5 +1,7 @@
 import { GITHUB_PATHNAME } from "../constants";
 import { ExtendableEventType } from "../types/Basic";
+import { deleteUserSession, getUserSession, setUserSession } from "./session";
+import { generateRandomId } from "./utils";
 
 // use secrets
 export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
@@ -25,8 +27,13 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
       status: 500,
     });
 
+    const id = generateRandomId(20)
+    // to make sure anyone doesn't change another users github username, we pass random id to the telegram id
+    // and save the id mapped to the telegram for use and then its deleted from the Map
+    setUserSession(id, telegramId)
+
     return Response.redirect(
-      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
+      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${id}`,
       302
     );
   }
@@ -53,7 +60,9 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
       return new Response(JSON.stringify(result), { status: 401, headers });
     }
 
-    return new Response(JSON.stringify({ token: result.access_token }), {
+    const id = getUserSession(telegramId as string);
+
+    return new Response(JSON.stringify({ token: result.access_token, id }), {
       status: 201,
       headers,
     });
@@ -62,5 +71,7 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
     return new Response("", {
       status: 500,
     });
+  } finally {
+    deleteUserSession(telegramId as string) // make sure user session is deleted
   }
 }
