@@ -5,5 +5,7 @@
   "openai_api_key": "",
   "github_pat": "",
   "default_priority": "Priority: 0 (Normal)",
-  "installation_token": ""
+  "installation_token": "",
+  "supabase_key": "",
+  "supabase_url": ""
 }
