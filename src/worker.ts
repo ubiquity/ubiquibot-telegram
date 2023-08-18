@@ -5,6 +5,7 @@
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
+import { OAuthHandler } from "./helpers/oauth-login";
 import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -21,6 +22,8 @@ import {
 } from "./helpers/utils";
 import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/Basic";
 
+const GITHUB = "/github-link"
+
 /**
  * Wait for requests to the worker
  */
@@ -29,6 +32,8 @@ addEventListener("fetch", async (event: Event) => {
   const url = new URL(ev.request.url);
   if (url.pathname === WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType));
+  } else if(url.pathname === GITHUB) {
+    await ev.respondWith(OAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {

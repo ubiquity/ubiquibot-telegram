@@ -8,6 +8,8 @@ declare global {
   const GITHUB_PAT: string;
   const INSTALLATION_TOKEN: string;
   const TOKEN: string;
+  const CLIENT_ID: string;
+  const CLIENT_SECRET: string;
 }
 
 export {};
