@@ -8,7 +8,7 @@ import { parseCallData } from "./utils";
 export const handleFirstMenu = async (value: string, chatId: number, messageId: number, groupData: string) => {
   switch (value) {
     case "link_github":
-      await editBotMessage(chatId, messageId, `OK!, Send the URL of repository you want to link to this group.`);
+      await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this group.`);
       setUserSession(chatId, { v: "link_github", c: groupData });
       break;
     default:
