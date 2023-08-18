@@ -89,7 +89,7 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
       : await replyMessage(chatId, "Choose a group from the list below:", keyboardRes);
   } else {
     messageId
-      ? await editBotMessage(chatId, messageId, "Oops, you don't have the bot installed on any of your groups")
+      ? await editBotMessage(chatId, messageId, "You do not have the bot installed on any of your groups.")
       : await replyMessage(chatId, "Oops, you don't have the bot installed on any of your groups");
   }
 };
