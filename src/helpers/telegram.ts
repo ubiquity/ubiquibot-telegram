@@ -91,7 +91,7 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
   } else {
     messageId
       ? await editBotMessage(chatId, messageId, "You do not have the bot installed on any of your groups.")
-      : await replyMessage(chatId, "Oops, you don't have the bot installed on any of your groups");
+      : await replyMessage(chatId, "You do not have the bot installed on any of your groups.");
   }
 };
 
