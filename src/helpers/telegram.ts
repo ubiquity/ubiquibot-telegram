@@ -138,8 +138,8 @@ export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, t
     }
   } else {
     // Check if the user has an active session
-    if (hasUserSession(chatId)) {
-      const userContext = getUserSession(chatId);
+    if (await hasUserSession(chatId)) {
+      const userContext = await getUserSession(chatId);
       // Handle the message based on the user's context
       switch (userContext.v) {
         case "link_github":

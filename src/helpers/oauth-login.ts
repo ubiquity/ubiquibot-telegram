@@ -1,6 +1,6 @@
 import { GITHUB_PATHNAME } from "../constants";
 import { ExtendableEventType } from "../types/Basic";
-import { getUserSession, hasUserSession } from "./session";
+import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 
 // use secrets
 export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
@@ -34,7 +34,7 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
   }
 
   try {
-    if (hasUserSession(telegramId as string)) {
+    if (await hasUserSession(telegramId as string)) {
       const response = await fetch("https://github.com/login/oauth/access_token", {
         method: "POST",
         headers: {
@@ -53,20 +53,22 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
         return new Response(JSON.stringify(result), { status: 401, headers });
       }
 
-      const id = getUserSession(telegramId as string);
-      return new Response(JSON.stringify({ token: result.access_token, id }), {
+      const {user, group} = await getUserSession(telegramId as string);
+      return new Response(JSON.stringify({ token: result.access_token, user, group}), {
         status: 201,
         headers,
       });
     } else {
-      return new Response("", {
-        status: 500,
+      return new Response(JSON.stringify({  error: "Not a valid session" }), {
+        status: 400,
       });
     }
   } catch (error) {
     console.log(error);
-    return new Response("", {
-      status: 500,
-    });
+    return new Response(JSON.stringify({ error }), {
+        status: 400,
+      });
+  } finally {
+    deleteUserSession(telegramId as string)
   }
 };

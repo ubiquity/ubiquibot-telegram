@@ -7,7 +7,6 @@ import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
-import { userSessions } from "./helpers/session";
 import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -30,8 +29,6 @@ import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, My
 addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
-    console.log([...userSessions.entries()]);
-
   if (url.pathname === WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType, url));
   } else if (url.pathname === GITHUB_PATHNAME) {

@@ -1,5 +1,5 @@
 import { GITHUB_PATHNAME } from "../constants";
-import { setUserSession, userSessions } from "./session";
+import { setUserSession } from "./session";
 import { replyMessage } from "./triggers";
 import { generateGitHubIssueBody, generateRandomId } from "./utils";
 
@@ -80,7 +80,7 @@ export const createIssue = async (
 
 export const createGithubTelegramLink = async (telegramId: number, group: number, origin: string) => {
   const id = generateRandomId(20);
-  setUserSession(id, { user: telegramId, group});
+  await setUserSession(id, { user: telegramId, group});
 
   const url = `${origin}${GITHUB_PATHNAME}?telegramId=${id}`;
 
