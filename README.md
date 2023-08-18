@@ -83,7 +83,7 @@ This command will deploy your Cloudflare Workers application and make it accessi
 
 4. Members of your group can use `/github_link` command (sent to the group) and a link will be sent to their inbox to bind their telegram with their Github accounts
 
-# Troubleshooting Telegram
+### Troubleshooting Telegram
 
 1. Bot cannot read messages - [Solution](https://www.teleme.io/articles/group_privacy_mode_of_telegram_bots?hl=en)
 2. Every other errors can be debugged from the Cloudflare Worker dashboard (under Real-time Logs)
