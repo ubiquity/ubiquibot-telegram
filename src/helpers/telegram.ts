@@ -120,7 +120,7 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   return true;
 };
 
-export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, text: string, fromId: number, chatId: number, url: URL) => {
+export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, text: string, fromId: number, chatId: number, username: string, url: URL) => {
   if (isSlash) {
     const { command } = extractSlashCommand(text);
 
@@ -131,7 +131,7 @@ export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, t
         }
         break;
       case "/github_link":
-        await createGithubTelegramLink(fromId, chatId, url.origin);
+        await createGithubTelegramLink(username, fromId, chatId, url.origin);
         break;
       default:
         break;

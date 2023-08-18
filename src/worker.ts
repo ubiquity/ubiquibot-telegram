@@ -206,6 +206,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * https://core.telegram.org/bots/api#message
  */
 const onMessage = async (message: MessageType, url: URL) => {
+  console.log(message)
   console.log(`Received message: ${message.text}`);
 
   if (!message.text) {
@@ -218,11 +219,12 @@ const onMessage = async (message: MessageType, url: URL) => {
   const isPrivate = message.chat.type === "private";
   const chatId = message.chat.id; // chat id
   const fromId = message.from.id; // get caller id
+  const username = message.from.username
 
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, url);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, url);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url);
   }
 
   // Check if cooldown

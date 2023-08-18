@@ -86,10 +86,10 @@ export const getRepoByGroupId = async (groupId: number) => {
   }
 };
 
-export const bindGithubToTelegramUser = async (userId: number, groupId: number, githubId: string) => {
+export const bindGithubToTelegramUser = async (groupId: number, username: string, githubId: string) => {
   const { data, error } = await supabase.from("telegram_users").upsert([
     {
-      user_id: `${userId}_${groupId}`,
+      user_id: `${username}_${groupId}`,
       github_id: githubId,
       created_at: new Date().toUTCString(),
       updated_at: new Date().toUTCString(),

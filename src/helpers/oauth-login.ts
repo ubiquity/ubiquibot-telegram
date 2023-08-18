@@ -4,7 +4,7 @@ import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { bindGithubToTelegramUser } from "./supabase";
 import { replyMessage } from "./triggers";
 
-export const getUserData = async (token: string, telegramId: number, groupId: number, headers: HeadersInit) => {
+export const getUserData = async (token: string, telegramId: number, username: string, groupId: number, headers: HeadersInit) => {
   const getUserResponse = await fetch("https://api.github.com/user", {
     headers: {
       accept: "application/vnd.github.v3+json",
@@ -16,7 +16,7 @@ export const getUserData = async (token: string, telegramId: number, groupId: nu
   const { login } = await getUserResponse.json();
 
   if (login) {
-    await bindGithubToTelegramUser(telegramId, groupId, login);
+    await bindGithubToTelegramUser(groupId, username, login);
 
     await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
 
@@ -82,9 +82,9 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
         return new Response(JSON.stringify(result), { status: 401, headers });
       }
 
-      const { user, group } = await getUserSession(telegramId as string);
+      const { username, group, telegramId: id } = await getUserSession(telegramId as string);
 
-      const res = await getUserData(result.access_token, user, group, headers);
+      const res = await getUserData(result.access_token, id, username, group, headers);
 
       return res;
     } else {

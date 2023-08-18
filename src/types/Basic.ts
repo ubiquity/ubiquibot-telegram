@@ -29,6 +29,7 @@ export type MessageType = {
   };
   from: {
     id: number;
+    username: string
   };
 };
 
