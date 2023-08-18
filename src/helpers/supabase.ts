@@ -85,3 +85,31 @@ export const getRepoByGroupId = async (groupId: number) => {
     return "";
   }
 };
+
+export const bindGithubToTelegramUser = async (userId: number, groupId: number, githubId: string) => {
+  const { data, error } = await supabase.from("telegram_users").upsert([
+    {
+      user_id: `${userId}_${groupId}`,
+      github_id: githubId,
+      updated_at: new Date().toUTCString(),
+    },
+  ]);
+
+  if (error) {
+    console.error("Error adding/updating user:", error.message);
+    return null;
+  }
+
+  return data;
+};
+
+export const getUserGithubUsername = async (userId: number, groupId: number) => {
+  const { data, error } = await supabase.from("telegram_users").select("github_id").eq("user_id", `${userId}_${groupId}`);
+
+  if (error) {
+    console.error("Error getting user:", error.message);
+    return null;
+  }
+
+  return data[0].github_id;
+};

@@ -1,6 +1,7 @@
 import { GITHUB_PATHNAME } from "../constants";
 import { ExtendableEventType } from "../types/Basic";
 import { deleteUserSession, getUserSession, hasUserSession } from "./session";
+import { bindGithubToTelegramUser } from "./supabase";
 import { replyMessage } from "./triggers";
 
 export const getUserData = async (token: string, telegramId: number, groupId: number, headers: HeadersInit) => {
@@ -9,26 +10,26 @@ export const getUserData = async (token: string, telegramId: number, groupId: nu
       accept: "application/vnd.github.v3+json",
       authorization: `token ${token}`,
       "User-Agent": "Telegram Cloudflare Worker",
-    }
+    },
   });
 
-  const userData = await getUserResponse.json();
+  const { login } = await getUserResponse.json();
 
-  console.log(userData)
+  if (login) {
+    await bindGithubToTelegramUser(telegramId, groupId, login);
 
-  if(userData.login) {
-    await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${userData.login}*`);
+    await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
 
-    return new Response(JSON.stringify({ login: userData.login }), {
+    return new Response(JSON.stringify({ login: login }), {
       status: 201,
       headers,
     });
   } else {
     return new Response(JSON.stringify({ error: "Error occured while fetching user" }), {
-        status: 400,
+      status: 400,
     });
   }
-}
+};
 
 // use secrets
 export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
@@ -81,22 +82,22 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
         return new Response(JSON.stringify(result), { status: 401, headers });
       }
 
-      const {user, group} = await getUserSession(telegramId as string);
+      const { user, group } = await getUserSession(telegramId as string);
 
-      const res = await getUserData(result.access_token, user, group, headers)
+      const res = await getUserData(result.access_token, user, group, headers);
 
       return res;
     } else {
-      return new Response(JSON.stringify({  error: "Not a valid session" }), {
+      return new Response(JSON.stringify({ error: "Not a valid session" }), {
         status: 400,
       });
     }
   } catch (error) {
     console.log(error);
     return new Response(JSON.stringify({ error }), {
-        status: 400,
-      });
+      status: 400,
+    });
   } finally {
-    await deleteUserSession(telegramId as string)
+    await deleteUserSession(telegramId as string);
   }
 };

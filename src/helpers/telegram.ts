@@ -147,7 +147,7 @@ export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, t
           const saved = await handleSetGithubRepo(fromId, userContext.c, text);
           if (saved) {
             // Clear the user's context after processing
-            deleteUserSession(chatId);
+            await deleteUserSession(chatId);
           }
           break;
         // Add more cases for other contexts

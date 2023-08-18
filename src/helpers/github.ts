@@ -80,13 +80,14 @@ export const createIssue = async (
 
 export const createGithubTelegramLink = async (telegramId: number, group: number, origin: string) => {
   const id = generateRandomId(20);
-  await setUserSession(id, { user: telegramId, group});
+
+  await setUserSession(id, { user: telegramId, group });
 
   const url = `${origin}${GITHUB_PATHNAME}?telegramId=${id}`;
 
   await replyMessage(telegramId, `Use this to link your Github: ${url}`);
 
-  return true
+  return true;
 };
 
 export default {
