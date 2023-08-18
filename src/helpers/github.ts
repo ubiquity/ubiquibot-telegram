@@ -54,7 +54,7 @@ export const createIssue = async (
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
 
     // get user if tagged exist
-    const assignees = tagged ? await getGithubUserData(organization, tagged) : [];
+    const assignees = tagged === "" ? [] : [tagged]
 
     const response = await fetch(apiUrl, {
       method: "POST",
