@@ -6,6 +6,8 @@
   "github_pat": "",
   "default_priority": "Priority: 0 (Normal)",
   "installation_token": "",
+  "client_id": "",
+  "client_secret": "",
   "supabase_key": "",
   "supabase_url": ""
 }
