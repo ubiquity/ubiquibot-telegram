@@ -1,4 +1,3 @@
-import { repoMapping } from "../constants";
 import { ParsedDataType, TaskInfoType } from "../types/Basic";
 import { getRepoByGroupId } from "./supabase";
 

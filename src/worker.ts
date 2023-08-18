@@ -21,17 +21,6 @@ import {
 } from "./helpers/utils";
 import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/Basic";
 
-declare global {
-  const WEBHOOK: string;
-  const SECRET: string;
-  const OPENAI_API_KEY: string;
-  const SUPABASE_URL: string;
-  const SUPABASE_KEY: string;
-  const GITHUB_PAT: string;
-  const INSTALLATION_TOKEN: string;
-  const TOKEN: string;
-} // Environment variables type
-
 /**
  * Wait for requests to the worker
  */
