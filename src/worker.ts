@@ -24,10 +24,10 @@ import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, Up
 addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
-  if (url.pathname === process.env.WEBHOOK) {
+  if (url.pathname === WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType));
   } else if (url.pathname === "/registerWebhook") {
-    await ev.respondWith(registerWebhook(event, url, process.env.WEBHOOK || "", process.env.SECRET || ""));
+    await ev.respondWith(registerWebhook(event, url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
     await ev.respondWith(unRegisterWebhook(event));
   } else {
@@ -41,7 +41,7 @@ addEventListener("fetch", async (event: Event) => {
  */
 const handleWebhook = async (event: ExtendableEventType) => {
   // Check secret
-  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== process.env.SECRET) {
+  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
     return new Response("Unauthorized", { status: 403 });
   }
 

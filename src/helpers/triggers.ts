@@ -8,7 +8,7 @@ export const apiUrl = (methodName: string, params: ApiParam | null) => {
   if (params !== null) {
     query = "?" + new URLSearchParams(params.toString()).toString();
   }
-  return `https://api.telegram.org/bot${process.env.TOKEN}/${methodName}${query}`;
+  return `https://api.telegram.org/bot${TOKEN}/${methodName}${query}`;
 };
 
 /**

@@ -11,7 +11,7 @@ export const getGithubUserData = async (orgName: string, user: string) => {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `token ${process.env.GITHUB_PAT}`,
+        Authorization: `token ${GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },
@@ -56,7 +56,7 @@ export const createIssue = async (
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${process.env.INSTALLATION_TOKEN || process.env.GITHUB_PAT}`,
+        Authorization: `token ${INSTALLATION_TOKEN || GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },

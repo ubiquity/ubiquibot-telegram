@@ -4,7 +4,7 @@ import { ErrorType } from "../types/Basic";
 
 export const completeGPT3 = async (messageText: string) => {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = OPENAI_API_KEY;
     const apiUrl = "https://api.openai.com/v1/completions";
 
     const requestBody = {
