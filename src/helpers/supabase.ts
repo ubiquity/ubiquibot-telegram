@@ -91,6 +91,7 @@ export const bindGithubToTelegramUser = async (userId: number, groupId: number, 
     {
       user_id: `${userId}_${groupId}`,
       github_id: githubId,
+      created_at: new Date().toUTCString(),
       updated_at: new Date().toUTCString(),
     },
   ]);

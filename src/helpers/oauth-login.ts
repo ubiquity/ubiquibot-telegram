@@ -20,7 +20,7 @@ export const getUserData = async (token: string, telegramId: number, groupId: nu
 
     await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
 
-    return new Response(JSON.stringify({ login: login }), {
+    return new Response(JSON.stringify({ success: `${login} has been binded to your telegram account` }), {
       status: 201,
       headers,
     });
