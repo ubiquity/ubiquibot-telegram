@@ -1,4 +1,5 @@
 import { KeyboardDataType } from "../types/Basic";
+import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
 import { addTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
 import { apiUrl, replyMessage, editBotMessage } from "./triggers";
@@ -119,13 +120,18 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   return true;
 };
 
-export const handleSlashCommand = async (isSlash: boolean, text: string, fromId: number, chatId: number) => {
+export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, text: string, fromId: number, chatId: number, url: URL) => {
   if (isSlash) {
     const { command } = extractSlashCommand(text);
 
     switch (command) {
       case "/start":
-        await listGroupsWithBot(fromId, chatId);
+        if (isPrivate) {
+          await listGroupsWithBot(fromId, chatId); // private chat only
+        }
+        break;
+      case "/github_link":
+        await createGithubTelegramLink(fromId, chatId, url.origin);
         break;
       default:
         break;

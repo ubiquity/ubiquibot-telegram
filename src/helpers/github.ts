@@ -1,4 +1,7 @@
-import { generateGitHubIssueBody } from "./utils";
+import { GITHUB_PATHNAME } from "../constants";
+import { setUserSession, userSessions } from "./session";
+import { replyMessage } from "./triggers";
+import { generateGitHubIssueBody, generateRandomId } from "./utils";
 
 /**
  * Get User in Organization
@@ -73,6 +76,17 @@ export const createIssue = async (
     console.log("Error creating issue:", error);
     return { data: null, assignees: false, error };
   }
+};
+
+export const createGithubTelegramLink = async (telegramId: number, group: number, origin: string) => {
+  const id = generateRandomId(20);
+  setUserSession(id, { user: telegramId, group});
+
+  const url = `${origin}${GITHUB_PATHNAME}?telegramId=${id}`;
+
+  await replyMessage(telegramId, `Use this to link your Github: ${url}`);
+
+  return true
 };
 
 export default {

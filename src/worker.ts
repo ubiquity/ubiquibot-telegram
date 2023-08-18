@@ -7,6 +7,7 @@ import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
+import { userSessions } from "./helpers/session";
 import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -29,9 +30,11 @@ import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, My
 addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
+    console.log([...userSessions.entries()]);
+
   if (url.pathname === WEBHOOK) {
-    await ev.respondWith(handleWebhook(ev as ExtendableEventType));
-  } else if(url.pathname === GITHUB_PATHNAME) {
+    await ev.respondWith(handleWebhook(ev as ExtendableEventType, url));
+  } else if (url.pathname === GITHUB_PATHNAME) {
     await ev.respondWith(OAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
@@ -46,7 +49,7 @@ addEventListener("fetch", async (event: Event) => {
  * Handle requests to WEBHOOK
  * https://core.telegram.org/bots/api#update
  */
-const handleWebhook = async (event: ExtendableEventType) => {
+const handleWebhook = async (event: ExtendableEventType, url: URL) => {
   // Check secret
   if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
     return new Response("Unauthorized", { status: 403 });
@@ -55,7 +58,7 @@ const handleWebhook = async (event: ExtendableEventType) => {
   // Read request body synchronously
   const update = await event.request.json();
   // Deal with response asynchronously
-  event.waitUntil(onUpdate(update));
+  event.waitUntil(onUpdate(update, url));
 
   return new Response("Ok");
 };
@@ -65,10 +68,10 @@ const handleWebhook = async (event: ExtendableEventType) => {
  * supports messages and callback queries (inline button presses)
  * https://core.telegram.org/bots/api#update
  */
-const onUpdate = async (update: UpdateType) => {
+const onUpdate = async (update: UpdateType, url: URL) => {
   if ("message" in update) {
     try {
-      await onMessage(update.message);
+      await onMessage(update.message, url);
     } catch (e) {
       console.log(e);
     }
@@ -205,7 +208,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
  */
-const onMessage = async (message: MessageType) => {
+const onMessage = async (message: MessageType, url: URL) => {
   console.log(`Received message: ${message.text}`);
 
   if (!message.text) {
@@ -216,15 +219,14 @@ const onMessage = async (message: MessageType) => {
   // HANDLE SLASH HANDLERS HERE
   const isSlash = slashCommandCheck(message.text);
   const isPrivate = message.chat.type === "private";
+  const chatId = message.chat.id; // chat id
+  const fromId = message.from.id; // get caller id
 
   if (isPrivate) {
-    // run prvate messages
-    const chatId = message.chat.id; // chat id
-    const fromId = message.from.id; // get caller id
-    return handleSlashCommand(isSlash, message.text, fromId, chatId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, url);
+  } else if (isSlash) {
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, url);
   }
-
-  if (isSlash) return;
 
   // Check if cooldown
   const isReady = isCooldownReady();
