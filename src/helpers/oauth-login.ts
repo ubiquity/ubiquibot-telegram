@@ -1,3 +1,4 @@
+import { GITHUB_PATHNAME } from "../constants";
 import { ExtendableEventType } from "../types/Basic";
 
 // use secrets
@@ -16,11 +17,16 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
   const queryParams = url.searchParams;
   
   const code = queryParams.get('code');
+  const telegramId = queryParams.get('telegramId');
 
   // redirect GET requests to the OAuth login page on github.com
   if (event.request.method === "GET" && !code) {
+    if(!telegramId) return new Response("", {
+      status: 500,
+    });
+
     return Response.redirect(
-      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}`,
+      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
       302
     );
   }

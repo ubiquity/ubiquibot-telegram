@@ -2,6 +2,7 @@
  * All console.log for debugging the worker on cloudflare dashboard
  */
 
+import { GITHUB_PATHNAME } from "./constants";
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
@@ -22,8 +23,6 @@ import {
 } from "./helpers/utils";
 import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/Basic";
 
-const GITHUB = "/github-link"
-
 /**
  * Wait for requests to the worker
  */
@@ -32,7 +31,7 @@ addEventListener("fetch", async (event: Event) => {
   const url = new URL(ev.request.url);
   if (url.pathname === WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType));
-  } else if(url.pathname === GITHUB) {
+  } else if(url.pathname === GITHUB_PATHNAME) {
     await ev.respondWith(OAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
