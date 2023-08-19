@@ -21,7 +21,7 @@ yarn
 
 - Fill in the required data in the environment.json file.
 
-```json
+```jsonc
 {
   "token": "", // Telegram Bot Token, use @BotFather to create a bot an input the token here
   "webhook": "/endpoint", // Path for telegram cloudflare communication (default preffered)
