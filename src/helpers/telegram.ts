@@ -131,20 +131,16 @@ export const handleSlashCommand = async (isSlash: boolean, text: string, fromId:
         break;
     }
   } else {
-    // Check if the user has an active session
     if (hasUserSession(chatId)) {
       const userContext = getUserSession(chatId);
-      // Handle the message based on the user's context
+
       switch (userContext.v) {
         case "link_github":
-          // Process the repository name provided by the user
           const saved = await handleSetGithubRepo(fromId, userContext.c, text);
           if (saved) {
-            // Clear the user's context after processing
             deleteUserSession(chatId);
           }
           break;
-        // Add more cases for other contexts
         default:
           console.log("User replied:", text);
           break;
