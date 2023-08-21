@@ -16,6 +16,8 @@ export const isAdminOfChat = async (userId: number, chatId: number) => {
 
     const res = await response.json();
 
+    console.log(res, chatId, userId)
+
     // Check if the API response indicates the user is an admin
     return res.ok && (res.result.status === "administrator" || res.result.status === "creator");
   } catch (error) {

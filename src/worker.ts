@@ -5,7 +5,7 @@
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
-import { getBotUsername, handleSlashCommand, isBotAdded, isBotRemoved } from "./helpers/telegram";
+import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
   cleanMessage,
@@ -62,9 +62,10 @@ const handleWebhook = async (event: ExtendableEventType) => {
  * https://core.telegram.org/bots/api#update
  */
 const onUpdate = async (update: UpdateType) => {
-  if ("message" in update) {
+  console.log(update)
+  if ("message" in update || "channel_post" in update) {
     try {
-      await onMessage(update.message);
+      await onMessage(update.message || update.channel_post);
     } catch (e) {
       console.log(e);
     }
@@ -131,6 +132,9 @@ const onBotInstall = async (event: MyChatQueryType) => {
       case "added":
         await isBotAdded(chatId, fromId, groupName);
         break;
+      case "administrator":
+        await isBotAdded(chatId, fromId, groupName);
+        break;
       default:
         break;
     }
@@ -142,8 +146,7 @@ const onBotInstall = async (event: MyChatQueryType) => {
  * https://core.telegram.org/bots/api#message
  */
 async function onCallbackQuery(callbackQuery: CallbackQueryType) {
-  const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
-  const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
+  const clickerId = callbackQuery.from.id; // Username of user who clicked the button
   const groupId = callbackQuery.message.chat.id; // group id
   const messageId = callbackQuery.message.message_id; // id for current message
   const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
@@ -151,9 +154,10 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
   const messageText = callbackQuery.message.text; // text of current message
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
 
-  // clicker needs to be the creator
-  if (clickerUsername !== creatorsUsername) {
-    return answerCallbackQuery(callbackQuery.id, "You're not allowed to use this, :task-creator-only");
+  //  only admin can approve task
+  const isAdmin = await isAdminOfChat(clickerId, groupId);
+  if(!isAdmin) {
+    return answerCallbackQuery(callbackQuery.id, "You're not allowed to create task, Admins only");
   }
 
   if (callbackQuery.data === "create_task") {
@@ -202,6 +206,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * https://core.telegram.org/bots/api#message
  */
 const onMessage = async (message: MessageType) => {
+  console.log(message)
   console.log(`Received message: ${message.text}`);
 
   if (!message.text) {
