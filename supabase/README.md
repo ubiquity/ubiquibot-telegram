@@ -5,7 +5,7 @@
 ### How to setup supabase project locally
 
 1. To get started with supabase, you have to create a project at [Supabase](https://supabase.com/).
-   Once you create a project, please put both variables into `.env` file.
+   Once you create a project, please put both variables into `environment.json` file.
 
 ```
 SUPABASE_URL=XXX
