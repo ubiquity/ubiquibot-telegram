@@ -1,6 +1,6 @@
-export const TRAINING = `You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue`;
+export const PROMPT_SYSTEM = `You are a helpful bot that assists with GitHub issues. Please determine if the following user message is suitable for a GitHub issue`;
 
-export const PROMPT = `
+export const PROMPT_USER = `
 	Consider the following criteria:
 	1. If the message describes a clear task and not a regular conversation, consider it suitable for a GitHub issue.
 	2. If the message is not too vague and includes necessary details, it may be suitable for a GitHub issue.
