@@ -77,11 +77,12 @@ This command will deploy your Cloudflare Workers application and make it accessi
 
 1. Install Bot on your group
 2. Edit Bot in [@BotFather](https://t.me/botfather) dashboard (On Telegram) - Add slash commands `/start`
-3. Use the private chat as an admin to trigger the `/start` command and link a Github Repo to any of the listed channels
+3. Copy your Worker URL on Github and add `/registerWebhook` as suffix, ex: `https://WORKER_URL/registerWebhook` - it should return `Ok` if everything works then you can move to the next step
+4. Use the private chat as an admin to trigger the `/start` command and link a Github Repo to any of the listed channels
 
 ![Screenshot 2023-08-18 at 8 15 28 PM](https://github.com/ubiquity/telegram-ubiquibot/assets/51956013/4e3d9313-af18-406e-9c91-3efcc372eb54)
 
-4. Members of your group can use `/github_link` command (sent to the group) and a link will be sent to their inbox to bind their telegram with their Github accounts
+4. Members of your group can use `/register` command (sent to the group) and a link will be sent to their inbox to bind their telegram with their Github accounts
 
 ### Troubleshooting Telegram
 
