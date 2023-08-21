@@ -1,6 +1,6 @@
 # Supabase Database Adapter
 
-[Supabase](https://supabase.com/) is used to store bounty hunters profiles and bounties information.
+[Supabase](https://supabase.com/) is used to store telegram group/channel to github repository mapping.
 
 ### How to setup supabase project locally
 
