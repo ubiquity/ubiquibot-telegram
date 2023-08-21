@@ -1,11 +1,11 @@
 # Supabase Database Adapter
 
-[Supabase](https://supabase.com/) is used to store telegram group/channel to github repository mapping.
+[Supabase](https://supabase.com/) is used to store bounty hunters profiles and bounties information.
 
 ### How to setup supabase project locally
 
 1. To get started with supabase, you have to create a project at [Supabase](https://supabase.com/).
-   Once you create a project, please put both variables into `environment.json` file.
+   Once you create a project, please put both variables into `.env` file.
 
 ```
 SUPABASE_URL=XXX
@@ -58,4 +58,3 @@ For more information about arguments, please go through [here](https://supabase.
 - `supabase migration new MIGRATION_NAME`: It will create a migration file in supabase/migrations folder.
 - `supabase migration repair <MIGRATION_NAME> --status reverted`: Revert a given migration file.
 - `supabase db push`: Update database schema on supabase platform
-- `supabase gen types typescript > src/adapters/supabase/types/database.ts --linked`: Generate typescript types from the supabase project linked
