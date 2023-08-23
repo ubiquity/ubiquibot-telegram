@@ -217,7 +217,6 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * https://core.telegram.org/bots/api#message
  */
 const onMessage = async (message: MessageType, url: URL) => {
-  console.log(message);
   console.log(`Received message: ${message.text}`);
 
   if (!message.text) {
