@@ -4,6 +4,8 @@
 
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
+import { onPrivateCallbackQuery } from "./helpers/navigation";
+import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
   cleanMessage,
@@ -15,8 +17,9 @@ import {
   generateMessageLink,
   getRepoData,
   removeTag,
+  slashCommandCheck,
 } from "./helpers/utils";
-import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, UpdateType } from "./types/Basic";
+import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/Basic";
 
 /**
  * Wait for requests to the worker
@@ -24,12 +27,12 @@ import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, Up
 addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
-  if (url.pathname === process.env.WEBHOOK) {
+  if (url.pathname === WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType));
   } else if (url.pathname === "/registerWebhook") {
-    await ev.respondWith(registerWebhook(event, url, process.env.WEBHOOK || "", process.env.SECRET || ""));
+    await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
-    await ev.respondWith(unRegisterWebhook(event));
+    await ev.respondWith(unRegisterWebhook());
   } else {
     await ev.respondWith(new Response("No handler for this request"));
   }
@@ -41,7 +44,7 @@ addEventListener("fetch", async (event: Event) => {
  */
 const handleWebhook = async (event: ExtendableEventType) => {
   // Check secret
-  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== process.env.SECRET) {
+  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
     return new Response("Unauthorized", { status: 403 });
   }
 
@@ -59,16 +62,27 @@ const handleWebhook = async (event: ExtendableEventType) => {
  * https://core.telegram.org/bots/api#update
  */
 const onUpdate = async (update: UpdateType) => {
-  if ("message" in update) {
+  console.log(update)
+  if ("message" in update || "channel_post" in update) {
     try {
-      await onMessage(update.message);
+      await onMessage(update.message || update.channel_post);
     } catch (e) {
       console.log(e);
     }
   }
 
   if ("callback_query" in update) {
-    await onCallbackQuery(update.callback_query);
+    const isPrivate = update.callback_query.message.chat.type === "private";
+    if (isPrivate) {
+      await onPrivateCallbackQuery(update.callback_query);
+    } else {
+      await onCallbackQuery(update.callback_query);
+    }
+  }
+
+  if ("my_chat_member" in update) {
+    // queries to run on installation and removal
+    await onBotInstall(update.my_chat_member);
   }
 };
 
@@ -76,7 +90,7 @@ const onUpdate = async (update: UpdateType) => {
  * Set webhook to this worker's url
  * https://core.telegram.org/bots/api#setwebhook
  */
-const registerWebhook = async (event: Event, requestUrl: URL, suffix: string, secret: string) => {
+const registerWebhook = async (requestUrl: URL, suffix: string, secret: string) => {
   // https://core.telegram.org/bots/api#setwebhook
   const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`;
   const r = await (await fetch(apiUrl("setWebhook", { url: webhookUrl, secret_token: secret }))).json();
@@ -87,9 +101,44 @@ const registerWebhook = async (event: Event, requestUrl: URL, suffix: string, se
  * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
-const unRegisterWebhook = async (event: Event) => {
+const unRegisterWebhook = async () => {
   const r = await (await fetch(apiUrl("setWebhook", { url: "" }))).json();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
+};
+
+const onBotInstall = async (event: MyChatQueryType) => {
+  const status = event.new_chat_member.status;
+  const triggerUserName = event.new_chat_member.user.username;
+  const chatId = event.chat.id;
+  const fromId = event.from.id;
+  const groupName = event.chat.title;
+
+  const botName = await getBotUsername();
+
+  console.log(status, chatId, fromId, groupName);
+
+  if (botName === triggerUserName) {
+    // true if this is a valid bot install and uninstall
+    switch (status) {
+      case "kicked":
+        await isBotRemoved(chatId, fromId);
+        break;
+      case "left":
+        await isBotRemoved(chatId, fromId);
+        break;
+      case "member":
+        await isBotAdded(chatId, fromId, groupName);
+        break;
+      case "added":
+        await isBotAdded(chatId, fromId, groupName);
+        break;
+      case "administrator":
+        await isBotAdded(chatId, fromId, groupName);
+        break;
+      default:
+        break;
+    }
+  }
 };
 
 /**
@@ -97,8 +146,7 @@ const unRegisterWebhook = async (event: Event) => {
  * https://core.telegram.org/bots/api#message
  */
 async function onCallbackQuery(callbackQuery: CallbackQueryType) {
-  const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
-  const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
+  const clickerId = callbackQuery.from.id; // Username of user who clicked the button
   const groupId = callbackQuery.message.chat.id; // group id
   const messageId = callbackQuery.message.message_id; // id for current message
   const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
@@ -106,20 +154,26 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
   const messageText = callbackQuery.message.text; // text of current message
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
 
-  // clicker needs to be the creator
-  if (clickerUsername !== creatorsUsername) {
-    return answerCallbackQuery(callbackQuery.id, "You're not allowed to use this, :task-creator-only");
+  //  only admin can approve task
+  const isAdmin = await isAdminOfChat(clickerId, groupId);
+  if(!isAdmin) {
+    return answerCallbackQuery(callbackQuery.id, "You're not allowed to create task, Admins only");
   }
 
   if (callbackQuery.data === "create_task") {
     // get message link
     const messageLink = generateMessageLink(messageIdReply, groupId);
 
-    const taskInfo = extractTaskInfo(messageText);
+    const { title, timeEstimate } = extractTaskInfo(messageText);
 
-    const { repoName, orgName } = getRepoData(groupId);
+    if (title === null || timeEstimate === null) {
+      console.log(`Task title is null`);
+      return;
+    }
 
-    console.log(`Check: ${taskInfo?.title}, ${taskInfo?.timeEstimate} ${orgName}:${repoName}`);
+    const { repoName, orgName } = await getRepoData(groupId);
+
+    console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
     if (!repoName || !orgName) {
       console.log(`No Github data mapped to channel`);
@@ -132,22 +186,13 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage);
 
-    const { data, assignees } = await createIssue(
-      taskInfo?.timeEstimate || "",
-      orgName,
-      repoName,
-      taskInfo?.title || "",
-      tagFreeTitle,
-      messageLink,
-      tagged || ""
-    );
+    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, tagged || "");
 
-    console.log(`Issue created: ${data.html_url}`);
+    console.log(`Issue created: ${data.html_url} ${data.message}`);
 
-    const msg = escapeMarkdown(
-      `*Issue created: [Check it out here](${data.html_url})* with time estimate *${taskInfo?.timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ""}`,
-      "*`[]()"
-    );
+    const msg = data.html_url
+      ? `*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ""}`
+      : `Error creating issue on *${orgName}/${repoName}*, Details: *${error || data.message}*`;
 
     await editBotMessage(groupId, messageId, msg);
     return answerCallbackQuery(callbackQuery.id, "issue created!");
@@ -161,7 +206,26 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * https://core.telegram.org/bots/api#message
  */
 const onMessage = async (message: MessageType) => {
+  console.log(message)
   console.log(`Received message: ${message.text}`);
+
+  if (!message.text) {
+    console.log(`Skipping, no message attached`);
+    return;
+  }
+
+  // HANDLE SLASH HANDLERS HERE
+  const isSlash = slashCommandCheck(message.text);
+  const isPrivate = message.chat.type === "private";
+
+  if (isPrivate) {
+    // run prvate messages
+    const chatId = message.chat.id; // chat id
+    const fromId = message.from.id; // get caller id
+    return handleSlashCommand(isSlash, message.text, fromId, chatId);
+  }
+
+  if (isSlash) return;
 
   // Check if cooldown
   const isReady = isCooldownReady();
@@ -195,11 +259,16 @@ const onMessage = async (message: MessageType) => {
   const groupId = message.chat.id; // group id
   const messageId = message.message_id;
 
-  const { repoName, orgName } = getRepoData(groupId);
+  const { repoName, orgName } = await getRepoData(groupId);
 
   if (!repoName || !orgName) {
     console.log(`No Github data mapped to channel`);
-    return;
+    return sendReply(
+      groupId,
+      messageId,
+      escapeMarkdown(`No Github mapped to this channel, please use the /start command in private chat to set this up`, "*`[]()@/"),
+      true
+    );
   }
 
   if (issueTitle) {

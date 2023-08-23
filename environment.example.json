@@ -1,8 +1,11 @@
 {
-  "token": "",
+  "telegram_bot_token": "",
   "webhook": "/endpoint",
   "secret": "QUEVEDO_BZRP_Random_String_52",
   "openai_api_key": "",
   "github_pat": "",
-  "default_priority": "Priority: 0 (Normal)"
+  "default_priority": "Priority: 0 (Normal)",
+  "github_installation_token": "",
+  "supabase_key": "",
+  "supabase_url": ""
 }

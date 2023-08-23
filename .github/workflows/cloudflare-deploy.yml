@@ -38,12 +38,12 @@ jobs:
       - name: Publish to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           WEBHOOK: "/endpoint"
           SECRET: ${{ secrets.BOT_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DEFAULT_PRIORITY: "Priority: 0 (Normal)"
-          INSTALLATION_TOKEN: ${{ steps.get_installation_token.outputs.token }}
+          GITHUB_INSTALLATION_TOKEN: ${{ steps.get_installation_token.outputs.token }}
         run: |
           # Populate Cloudflare Worker secrets
           echo "$TOKEN" | wrangler secret put TOKEN
@@ -51,6 +51,6 @@ jobs:
           echo "$SECRET" | wrangler secret put SECRET
           echo "$OPENAI_API_KEY" | wrangler secret put OPENAI_API_KEY
           echo "$DEFAULT_PRIORITY" | wrangler secret put DEFAULT_PRIORITY
-          echo "$INSTALLATION_TOKEN" | wrangler secret put INSTALLATION_TOKEN
+          echo "$GITHUB_INSTALLATION_TOKEN" | wrangler secret put GITHUB_INSTALLATION_TOKEN
 
           yarn deploy
