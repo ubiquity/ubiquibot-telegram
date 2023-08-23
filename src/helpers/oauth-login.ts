@@ -56,7 +56,7 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
       });
 
     return Response.redirect(
-      `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
+      `https://github.com/login/oauth/authorize?client_id=${GITHUB_OAUTH_CLIENT_ID}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
       302
     );
   }
@@ -70,7 +70,7 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
           "User-Agent": "Telegram Cloudflare Worker",
           accept: "application/json",
         },
-        body: JSON.stringify({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, code }),
+        body: JSON.stringify({ client_id: GITHUB_OAUTH_CLIENT_ID, client_secret: GITHUB_OAUTH_CLIENT_SECRET, code }),
       });
       const result = await response.json();
       const headers = {
