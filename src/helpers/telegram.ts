@@ -1,3 +1,4 @@
+import { GITHUB_PATHNAME } from "../constants";
 import { KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
@@ -132,7 +133,7 @@ export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, t
           await listGroupsWithBot(fromId, chatId); // private chat only
         }
         break;
-      case "/github_link":
+      case GITHUB_PATHNAME:
         await createGithubTelegramLink(username, fromId, chatId, url.origin);
         break;
       default:
