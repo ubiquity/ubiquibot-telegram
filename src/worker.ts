@@ -67,7 +67,7 @@ const handleWebhook = async (event: ExtendableEventType, url: URL) => {
  * https://core.telegram.org/bots/api#update
  */
 const onUpdate = async (update: UpdateType, url: URL) => {
-  console.log(update)
+  console.log(update);
   if ("message" in update || "channel_post" in update) {
     try {
       await onMessage(update.message || update.channel_post, url);
@@ -161,7 +161,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 
   //  only admin can approve task
   const isAdmin = await isAdminOfChat(clickerId, groupId);
-  if(!isAdmin) {
+  if (!isAdmin) {
     return answerCallbackQuery(callbackQuery.id, "You're not allowed to create task, Admins only");
   }
 
@@ -189,7 +189,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     const tagged = extractTag(replyToMessage);
     let github_username;
 
-    if(tagged) {
+    if (tagged) {
       github_username = await getUserGithubUsername(tagged, groupId);
       console.log("Tagged user found:", github_username);
     }
@@ -217,7 +217,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * https://core.telegram.org/bots/api#message
  */
 const onMessage = async (message: MessageType, url: URL) => {
-  console.log(message)
+  console.log(message);
   console.log(`Received message: ${message.text}`);
 
   if (!message.text) {
@@ -230,7 +230,7 @@ const onMessage = async (message: MessageType, url: URL) => {
   const isPrivate = message.chat.type === "private";
   const chatId = message.chat.id; // chat id
   const fromId = message.from.id; // get caller id
-  const username = message.from.username
+  const username = message.from.username;
 
   if (isPrivate) {
     return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url);

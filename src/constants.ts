@@ -2,5 +2,5 @@ export const TIME_LABELS: string[] = ["Time: <1 Hour", "Time: <1 Day", "Time: <1
 export const GITHUB_PATHNAME = "/register";
 
 export default {
-  TIME_LABELS
+  TIME_LABELS,
 };
