@@ -31,7 +31,6 @@ export const getUserData = async (token: string, telegramId: number, username: s
   }
 };
 
-// use secrets
 export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
   // handle CORS pre-flight request
   if (event.request.method === "OPTIONS") {
