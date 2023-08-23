@@ -228,7 +228,7 @@ const onMessage = async (message: MessageType, url: URL) => {
   // HANDLE SLASH HANDLERS HERE
   const isSlash = slashCommandCheck(message.text);
   const isPrivate = message.chat.type === "private";
-  const chatId = message.chat.id; // chat id
+  const chatId = message.chat.id;
   const fromId = message.from.id; // get caller id
   const username = message.from.username;
 
