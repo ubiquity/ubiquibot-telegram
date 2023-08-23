@@ -17,6 +17,8 @@ export const isAdminOfChat = async (userId: number, chatId: number) => {
 
     const res = await response.json();
 
+    console.log(res, chatId, userId)
+
     // Check if the API response indicates the user is an admin
     return res.ok && (res.result.status === "administrator" || res.result.status === "creator");
   } catch (error) {
@@ -137,20 +139,15 @@ export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, t
         break;
     }
   } else {
-    // Check if the user has an active session
     if (await hasUserSession(chatId)) {
       const userContext = await getUserSession(chatId);
-      // Handle the message based on the user's context
       switch (userContext.v) {
         case "link_github":
-          // Process the repository name provided by the user
           const saved = await handleSetGithubRepo(fromId, userContext.c, text);
           if (saved) {
-            // Clear the user's context after processing
             await deleteUserSession(chatId);
           }
           break;
-        // Add more cases for other contexts
         default:
           console.log("User replied:", text);
           break;

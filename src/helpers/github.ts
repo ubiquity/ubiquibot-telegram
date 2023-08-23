@@ -59,7 +59,7 @@ export const createIssue = async (
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${INSTALLATION_TOKEN || GITHUB_PAT}`,
+        Authorization: `token ${GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },
