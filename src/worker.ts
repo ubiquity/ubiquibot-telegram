@@ -7,7 +7,7 @@ import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
-import { getUserGithubUsername } from "./helpers/supabase";
+import { getUserGithubId } from "./helpers/supabase";
 import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -187,17 +187,17 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 
     // get tagged user if available
     const tagged = extractTag(replyToMessage);
-    let github_username;
+    let github_id;
 
     if (tagged) {
-      github_username = await getUserGithubUsername(tagged, groupId);
-      console.log("Tagged user found:", github_username);
+      github_id = await getUserGithubId(tagged, groupId);
+      console.log("Tagged user found:", github_id);
     }
 
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage);
 
-    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, github_username || "");
+    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, github_id || -1);
 
     console.log(`Issue created: ${data.html_url} ${data.message}`);
 

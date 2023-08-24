@@ -104,8 +104,8 @@ export const bindGithubToTelegramUser = async (groupId: number, username: string
   return data;
 };
 
-export const getUserGithubUsername = async (username: string, groupId: number) => {
-  const { data, error } = await supabase.from("telegram_users").select("github_id").eq("user_id", `${username}_${groupId}`);
+export const getUserGithubId = async (github_id: string, groupId: number) => {
+  const { data, error } = await supabase.from("telegram_users").select("github_id").eq("user_id", `${github_id}_${groupId}`);
 
   if (error) {
     console.error("Error getting user:", error.message);

@@ -3,13 +3,15 @@ import { setUserSession } from "./session";
 import { replyMessage } from "./triggers";
 import { generateGitHubIssueBody, generateRandomId } from "./utils";
 
+const GITHUB_API_URL = "https://api.github.com";
+
 /**
  * Get User in Organization
  */
 
 export const getGithubUserData = async (orgName: string, user: string) => {
   try {
-    const apiUrl = `https://api.github.com/orgs/${orgName}/memberships/${user}`;
+    const apiUrl = `${GITHUB_API_URL}/orgs/${orgName}/memberships/${user}`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -32,6 +34,58 @@ export const getGithubUserData = async (orgName: string, user: string) => {
 };
 
 /**
+ * Get user from username
+ */
+export const getUserDataFromUsername = async (username: string) => {
+  try {
+    const apiUrl = `${GITHUB_API_URL}/users/${username}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `token ${GITHUB_PAT}`,
+        "Content-Type": "application/json",
+        "User-Agent": "Telegram Cloudflare Worker",
+      },
+    });
+    const data = await response.json();
+    if (data?.id) {
+      return data?.id;
+    }
+    return -1;
+  } catch (error) {
+    console.log("Error fetching user:", error);
+    return -1;
+  }
+};
+
+/**
+ * Get user from id
+ */
+export const getUserDataFromId = async (id: number) => {
+  try {
+    const apiUrl = `${GITHUB_API_URL}/user/${id}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `token ${GITHUB_PAT}`,
+        "Content-Type": "application/json",
+        "User-Agent": "Telegram Cloudflare Worker",
+      },
+    });
+    const data = await response.json();
+    if (data?.login) {
+      return data?.login;
+    }
+    return "";
+  } catch (error) {
+    console.log("Error fetching user:", error);
+    return "";
+  }
+};
+
+/**
  * Create Issue on Github
  */
 export const createIssue = async (
@@ -41,11 +95,11 @@ export const createIssue = async (
   issueTitle: string,
   messageText: string,
   messageLink: string,
-  tagged: string
+  tagged: number
 ) => {
   console.log("Creating Github Issue:", organization, repository, issueTitle, messageText, messageLink, tagged);
   try {
-    const apiUrl = `https://api.github.com/repos/${organization}/${repository}/issues`;
+    const apiUrl = `${GITHUB_API_URL}/repos/${organization}/${repository}/issues`;
 
     // labels array
     const labels = [`Time: <${timeEstimate}`];
@@ -54,7 +108,14 @@ export const createIssue = async (
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
 
     // get user if tagged exist
-    const assignees = tagged === "" ? [] : [tagged];
+    let assignees: string[];
+
+    if (tagged === -1) {
+      assignees = [];
+    } else {
+      const username = await getUserDataFromId(tagged);
+      assignees = username ? [username] : [];
+    }
 
     const response = await fetch(apiUrl, {
       method: "POST",

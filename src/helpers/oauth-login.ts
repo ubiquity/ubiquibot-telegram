@@ -1,5 +1,6 @@
 import { GITHUB_PATHNAME } from "../constants";
 import { ExtendableEventType } from "../types/Basic";
+import { getUserDataFromUsername } from "./github";
 import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { bindGithubToTelegramUser } from "./supabase";
 import { replyMessage } from "./triggers";
@@ -15,8 +16,10 @@ export const getUserData = async (token: string, telegramId: number, username: s
 
   const { login } = await getUserResponse.json();
 
-  if (login) {
-    await bindGithubToTelegramUser(groupId, username, login);
+  const id = await getUserDataFromUsername(login);
+
+  if (id) {
+    await bindGithubToTelegramUser(groupId, username, id);
 
     await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
 
