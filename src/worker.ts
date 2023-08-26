@@ -230,6 +230,7 @@ const onMessage = async (message: MessageType, url: URL) => {
   const chatId = message.chat.id;
   const fromId = message.from.id; // get caller id
   const username = message.from.username;
+  const messageId = message.message_id;
 
   if (isPrivate) {
     return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url);
@@ -266,15 +267,12 @@ const onMessage = async (message: MessageType, url: URL) => {
   // Update the last analysis timestamp upon successful analysis
   setLastAnalysisTimestamp(Date.now());
 
-  const groupId = message.chat.id; // group id
-  const messageId = message.message_id;
-
-  const { repoName, orgName } = await getRepoData(groupId);
+  const { repoName, orgName } = await getRepoData(chatId);
 
   if (!repoName || !orgName) {
     console.log(`No Github data mapped to channel`);
     return sendReply(
-      groupId,
+      chatId,
       messageId,
       escapeMarkdown(`No Github mapped to this channel, please use the /start command in private chat to set this up`, "*`[]()@/"),
       true
@@ -282,6 +280,6 @@ const onMessage = async (message: MessageType, url: URL) => {
   }
 
   if (issueTitle) {
-    return sendReply(groupId, messageId, escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/"));
+    return sendReply(chatId, messageId, escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/"));
   }
 };

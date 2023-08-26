@@ -39,7 +39,7 @@ yarn
 
 [Here's a guide to create Github App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
 
-Note: Your Github App Callback URL should be `https://YOUR_CLOUDFLARE_WORKER_URL/endpoint` or `/` whatever you used in place of `"webhook": "/endpoint"`
+Note: Your Github App Callback URL should be `https://YOUR_CLOUDFLARE_WORKER_URL/register`
 
 [@BotFather for telegram bots](https://t.me/botfather)
 
