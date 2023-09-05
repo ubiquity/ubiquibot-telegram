@@ -4,7 +4,7 @@ export const setUserSession = async (key: number | string, value: string | { tel
   // check for previous session and delete before creating a new one
   if (value && typeof value === "object" && value.telegramId) {
     const { data } = await supabase.from("sessions").select("key").eq("value -> telegramId", value.telegramId).eq("value -> group", value.group);
-    if(data) {
+    if(data && data?.length > 0) {
       await supabase.from("sessions").delete().eq("key", data[0].key);
     }
   }
