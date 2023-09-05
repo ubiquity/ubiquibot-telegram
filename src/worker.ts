@@ -233,9 +233,9 @@ const onMessage = async (message: MessageType, url: URL) => {
   const messageId = message.message_id;
 
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
   }
 
   // Check if cooldown

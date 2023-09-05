@@ -140,7 +140,7 @@ export const createIssue = async (
 };
 
 export const createGithubTelegramLink = async (username: string, telegramId: number, group: number, origin: string) => {
-  const id = crypto.randomUUID()
+  const id = crypto.randomUUID();
 
   await setUserSession(id, { username, group, telegramId });
 

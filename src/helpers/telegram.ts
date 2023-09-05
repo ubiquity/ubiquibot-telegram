@@ -3,8 +3,8 @@ import { KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
 import { addTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
-import { apiUrl, replyMessage, editBotMessage } from "./triggers";
-import { extractSlashCommand } from "./utils";
+import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
+import { escapeMarkdown, extractSlashCommand } from "./utils";
 
 // Check if user is admin of group
 export const isAdminOfChat = async (userId: number, chatId: number) => {
@@ -122,7 +122,21 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   return true;
 };
 
-export const handleSlashCommand = async (isPrivate: boolean, isSlash: boolean, text: string, fromId: number, chatId: number, username: string, url: URL) => {
+export const handleSlashCommand = async (
+  isPrivate: boolean,
+  isSlash: boolean,
+  text: string,
+  fromId: number,
+  chatId: number,
+  username: string,
+  url: URL,
+  messageId: number
+) => {
+  if (!username && chatId) {
+    await sendReply(chatId, messageId, escapeMarkdown(`Please, set a username to use this bot!\nSettings > Username`, "*`[]()@/"), true);
+    return;
+  }
+
   if (isSlash) {
     const { command } = extractSlashCommand(text);
 
