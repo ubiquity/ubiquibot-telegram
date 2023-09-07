@@ -7,7 +7,7 @@ import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
-import { getUserGithubId } from "./helpers/supabase";
+import { getUserGithubId, getUserGithubToken } from "./helpers/supabase";
 import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -151,19 +151,23 @@ const onBotInstall = async (event: MyChatQueryType) => {
  * https://core.telegram.org/bots/api#message
  */
 async function onCallbackQuery(callbackQuery: CallbackQueryType) {
-  const clickerId = callbackQuery.from.id; // Username of user who clicked the button
+  const clickerId = callbackQuery.from.id; // id of user who clicked the button
+  const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
+  const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
   const groupId = callbackQuery.message.chat.id; // group id
   const messageId = callbackQuery.message.message_id; // id for current message
   const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
-  //const senderId = message.from.id
   const messageText = callbackQuery.message.text; // text of current message
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
 
-  //  only admin can approve task
   const isAdmin = await isAdminOfChat(clickerId, groupId);
-  if (!isAdmin) {
-    return answerCallbackQuery(callbackQuery.id, "You're not allowed to create task, Admins only");
+  // clicker needs to be the creator or admin
+  if (!isAdmin && clickerUsername !== creatorsUsername) {
+    return answerCallbackQuery(callbackQuery.id, "You are not the creator of this task or an admin");
   }
+
+  // get users token if available
+  const token = await getUserGithubToken(creatorsUsername, groupId);
 
   if (callbackQuery.data === "create_task") {
     // get message link
@@ -197,7 +201,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage);
 
-    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, github_id || -1);
+    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, github_id || -1, token);
 
     console.log(`Issue created: ${data.html_url} ${data.message}`);
 

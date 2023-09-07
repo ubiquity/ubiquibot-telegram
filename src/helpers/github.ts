@@ -95,7 +95,8 @@ export const createIssue = async (
   issueTitle: string,
   messageText: string,
   messageLink: string,
-  tagged: number
+  tagged: number,
+  token: string
 ) => {
   console.log("Creating Github Issue:", organization, repository, issueTitle, messageText, messageLink, tagged);
   try {
@@ -120,7 +121,7 @@ export const createIssue = async (
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
+        Authorization: `token ${token || GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },

@@ -116,3 +116,14 @@ export const getUserGithubId = async (github_id: string, groupId: number) => {
 
   return data[0].github_id;
 };
+
+export const getUserGithubToken = async (github_id: string, groupId: number) => {
+  const { data, error } = await supabase.from("tele_git_users_maps").select("token").eq("user_id", github_id).eq("group_id", groupId);
+
+  if (error) {
+    console.error("Error getting user:", error.message);
+    return null;
+  }
+
+  return data[0].token;
+};
