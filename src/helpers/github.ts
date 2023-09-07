@@ -103,7 +103,7 @@ export const createIssue = async (
     const apiUrl = `${GITHUB_API_URL}/repos/${organization}/${repository}/issues`;
 
     // labels array
-    const labels = [`Time: <${timeEstimate}`];
+    const labels = token ? [] : [`Time: <${timeEstimate}`]; // add no labels when using user token
 
     // create body
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
