@@ -9,7 +9,7 @@ export const handleFirstMenu = async (value: string, chatId: number, messageId: 
   switch (value) {
     case "link_github":
       await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this group.`);
-      setUserSession(chatId, { v: "link_github", c: groupData });
+      await setUserSession(chatId, { v: "link_github", c: groupData });
       break;
     default:
       break;

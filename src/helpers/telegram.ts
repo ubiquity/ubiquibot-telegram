@@ -1,8 +1,10 @@
+import { GITHUB_PATHNAME } from "../constants";
 import { KeyboardDataType } from "../types/Basic";
+import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
 import { addTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
-import { apiUrl, replyMessage, editBotMessage } from "./triggers";
-import { extractSlashCommand } from "./utils";
+import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
+import { escapeMarkdown, extractSlashCommand } from "./utils";
 
 // Check if user is admin of group
 export const isAdminOfChat = async (userId: number, chatId: number) => {
@@ -16,9 +18,8 @@ export const isAdminOfChat = async (userId: number, chatId: number) => {
 
     const res = await response.json();
 
-    console.log(res, chatId, userId)
+    console.log(res, chatId, userId);
 
-    // Check if the API response indicates the user is an admin
     return res.ok && (res.result.status === "administrator" || res.result.status === "creator");
   } catch (error) {
     console.error("Error checking admin status:", error);
@@ -121,26 +122,44 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   return true;
 };
 
-export const handleSlashCommand = async (isSlash: boolean, text: string, fromId: number, chatId: number) => {
+export const handleSlashCommand = async (
+  isPrivate: boolean,
+  isSlash: boolean,
+  text: string,
+  fromId: number,
+  chatId: number,
+  username: string,
+  url: URL,
+  messageId: number
+) => {
+  if (!username && chatId) {
+    await sendReply(chatId, messageId, escapeMarkdown(`Please, set a username to use this bot!\nSettings > Username`, "*`[]()@/"), true);
+    return;
+  }
+
   if (isSlash) {
     const { command } = extractSlashCommand(text);
 
     switch (command) {
       case "/start":
-        await listGroupsWithBot(fromId, chatId);
+        if (isPrivate) {
+          await listGroupsWithBot(fromId, chatId); // private chat only
+        }
+        break;
+      case GITHUB_PATHNAME:
+        await createGithubTelegramLink(username, fromId, chatId, url.origin);
         break;
       default:
         break;
     }
   } else {
-    if (hasUserSession(chatId)) {
-      const userContext = getUserSession(chatId);
-
+    if (await hasUserSession(chatId)) {
+      const userContext = await getUserSession(chatId);
       switch (userContext.v) {
         case "link_github":
           const saved = await handleSetGithubRepo(fromId, userContext.c, text);
           if (saved) {
-            deleteUserSession(chatId);
+            await deleteUserSession(chatId);
           }
           break;
         default:

@@ -163,6 +163,9 @@ export const parseCallData = (callData: string): ParsedDataType[] => {
 
 export const getLastAnalysisTimestamp = () => lastAnalysisTimestamp;
 
+export const generateRandomId = (length: number) =>
+  Array.from({ length }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join("");
+
 export default {
   removeNewlinesAndExtractValues,
   cleanMessage,

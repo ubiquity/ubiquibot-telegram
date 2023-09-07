@@ -2,9 +2,12 @@
  * All console.log for debugging the worker on cloudflare dashboard
  */
 
+import { GITHUB_PATHNAME } from "./constants";
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
+import { OAuthHandler } from "./helpers/oauth-login";
+import { getUserGithubId } from "./helpers/supabase";
 import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -28,7 +31,9 @@ addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
   if (url.pathname === WEBHOOK) {
-    await ev.respondWith(handleWebhook(ev as ExtendableEventType));
+    await ev.respondWith(handleWebhook(ev as ExtendableEventType, url));
+  } else if (url.pathname === GITHUB_PATHNAME) {
+    await ev.respondWith(OAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
@@ -42,7 +47,7 @@ addEventListener("fetch", async (event: Event) => {
  * Handle requests to WEBHOOK
  * https://core.telegram.org/bots/api#update
  */
-const handleWebhook = async (event: ExtendableEventType) => {
+const handleWebhook = async (event: ExtendableEventType, url: URL) => {
   // Check secret
   if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
     return new Response("Unauthorized", { status: 403 });
@@ -51,7 +56,7 @@ const handleWebhook = async (event: ExtendableEventType) => {
   // Read request body synchronously
   const update = await event.request.json();
   // Deal with response asynchronously
-  event.waitUntil(onUpdate(update));
+  event.waitUntil(onUpdate(update, url));
 
   return new Response("Ok");
 };
@@ -61,11 +66,11 @@ const handleWebhook = async (event: ExtendableEventType) => {
  * supports messages and callback queries (inline button presses)
  * https://core.telegram.org/bots/api#update
  */
-const onUpdate = async (update: UpdateType) => {
-  console.log(update)
+const onUpdate = async (update: UpdateType, url: URL) => {
+  console.log(update);
   if ("message" in update || "channel_post" in update) {
     try {
-      await onMessage(update.message || update.channel_post);
+      await onMessage(update.message || update.channel_post, url);
     } catch (e) {
       console.log(e);
     }
@@ -156,7 +161,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 
   //  only admin can approve task
   const isAdmin = await isAdminOfChat(clickerId, groupId);
-  if(!isAdmin) {
+  if (!isAdmin) {
     return answerCallbackQuery(callbackQuery.id, "You're not allowed to create task, Admins only");
   }
 
@@ -182,11 +187,17 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 
     // get tagged user if available
     const tagged = extractTag(replyToMessage);
+    let github_id;
+
+    if (tagged) {
+      github_id = await getUserGithubId(tagged, groupId);
+      console.log("Tagged user found:", github_id);
+    }
 
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage);
 
-    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, tagged || "");
+    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, github_id || -1);
 
     console.log(`Issue created: ${data.html_url} ${data.message}`);
 
@@ -205,8 +216,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
  */
-const onMessage = async (message: MessageType) => {
-  console.log(message)
+const onMessage = async (message: MessageType, url: URL) => {
   console.log(`Received message: ${message.text}`);
 
   if (!message.text) {
@@ -217,15 +227,16 @@ const onMessage = async (message: MessageType) => {
   // HANDLE SLASH HANDLERS HERE
   const isSlash = slashCommandCheck(message.text);
   const isPrivate = message.chat.type === "private";
+  const chatId = message.chat.id;
+  const fromId = message.from.id; // get caller id
+  const username = message.from.username;
+  const messageId = message.message_id;
 
   if (isPrivate) {
-    // run prvate messages
-    const chatId = message.chat.id; // chat id
-    const fromId = message.from.id; // get caller id
-    return handleSlashCommand(isSlash, message.text, fromId, chatId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
+  } else if (isSlash) {
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
   }
-
-  if (isSlash) return;
 
   // Check if cooldown
   const isReady = isCooldownReady();
@@ -256,15 +267,12 @@ const onMessage = async (message: MessageType) => {
   // Update the last analysis timestamp upon successful analysis
   setLastAnalysisTimestamp(Date.now());
 
-  const groupId = message.chat.id; // group id
-  const messageId = message.message_id;
-
-  const { repoName, orgName } = await getRepoData(groupId);
+  const { repoName, orgName } = await getRepoData(chatId);
 
   if (!repoName || !orgName) {
     console.log(`No Github data mapped to channel`);
     return sendReply(
-      groupId,
+      chatId,
       messageId,
       escapeMarkdown(`No Github mapped to this channel, please use the /start command in private chat to set this up`, "*`[]()@/"),
       true
@@ -272,6 +280,6 @@ const onMessage = async (message: MessageType) => {
   }
 
   if (issueTitle) {
-    return sendReply(groupId, messageId, escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/"));
+    return sendReply(chatId, messageId, escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/"));
   }
 };

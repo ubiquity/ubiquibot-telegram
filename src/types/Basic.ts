@@ -29,6 +29,7 @@ export type MessageType = {
   };
   from: {
     id: number;
+    username: string;
   };
 };
 
@@ -42,7 +43,7 @@ export type ChannelMessageType = {
   from: {
     id: number;
   };
-}
+};
 
 export type CallbackQueryType = {
   id: number;
@@ -98,7 +99,7 @@ export type UpdateType = {
   message: MessageType;
   callback_query: CallbackQueryType;
   my_chat_member: MyChatQueryType;
-  channel_post: ChannelMessageType
+  channel_post: ChannelMessageType;
 };
 
 export interface FetchEventType extends Event {

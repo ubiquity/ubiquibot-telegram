@@ -1,5 +1,5 @@
 import { removeNewlinesAndExtractValues } from "./utils";
-import { PROMPT, TRAINING } from "./prompt";
+import { PROMPT_SYSTEM, PROMPT_USER } from "./prompt";
 import { ErrorType } from "../types/Basic";
 
 export const completeGPT3 = async (messageText: string) => {
@@ -12,11 +12,11 @@ export const completeGPT3 = async (messageText: string) => {
       messages: [
         {
           role: "system",
-          content: TRAINING,
+          content: PROMPT_SYSTEM,
         },
         {
           role: "user",
-          content: PROMPT.replace(/{messageText}/g, messageText),
+          content: PROMPT_USER.replace(/{messageText}/g, messageText),
         },
       ],
       max_tokens: 1500,

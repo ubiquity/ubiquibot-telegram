@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export const addTelegramBot = async (chatId: number, fromId: number, groupName: string) => {
   try {
@@ -84,4 +84,34 @@ export const getRepoByGroupId = async (groupId: number) => {
     console.log(error);
     return "";
   }
+};
+
+export const bindGithubToTelegramUser = async (groupId: number, username: string, githubId: string) => {
+  const { data, error } = await supabase.from("tele_git_users_maps").upsert([
+    {
+      user_id: username,
+      group_id: groupId,
+      github_id: githubId,
+      created_at: new Date().toUTCString(),
+      updated_at: new Date().toUTCString(),
+    },
+  ]);
+
+  if (error) {
+    console.error("Error adding/updating user:", error.message);
+    return null;
+  }
+
+  return data;
+};
+
+export const getUserGithubId = async (github_id: string, groupId: number) => {
+  const { data, error } = await supabase.from("tele_git_users_maps").select("github_id").eq("user_id", github_id).eq("group_id", groupId);
+
+  if (error) {
+    console.error("Error getting user:", error.message);
+    return null;
+  }
+
+  return data[0].github_id;
 };
