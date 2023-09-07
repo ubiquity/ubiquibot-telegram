@@ -5,6 +5,9 @@ import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { bindGithubToTelegramUser } from "./supabase";
 import { replyMessage } from "./triggers";
 
+// Define the scope for requesting access to public data and repo issues
+const scope = "public_repo";
+
 export const getUserData = async (token: string, telegramId: number, username: string, groupId: number, headers: HeadersInit) => {
   const getUserResponse = await fetch("https://api.github.com/user", {
     headers: {
@@ -19,7 +22,7 @@ export const getUserData = async (token: string, telegramId: number, username: s
   const id = await getUserDataFromUsername(login);
 
   if (id) {
-    await bindGithubToTelegramUser(groupId, username, id);
+    await bindGithubToTelegramUser(groupId, username, id, token);
 
     await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
 
@@ -59,7 +62,7 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
       });
 
     return Response.redirect(
-      `https://github.com/login/oauth/authorize?client_id=${GITHUB_OAUTH_CLIENT_ID}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
+      `https://github.com/login/oauth/authorize?client_id=${GITHUB_OAUTH_CLIENT_ID}&scope=${scope}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
       302
     );
   }
@@ -73,7 +76,7 @@ export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
           "User-Agent": "Telegram Cloudflare Worker",
           accept: "application/json",
         },
-        body: JSON.stringify({ client_id: GITHUB_OAUTH_CLIENT_ID, client_secret: GITHUB_OAUTH_CLIENT_SECRET, code }),
+        body: JSON.stringify({ client_id: GITHUB_OAUTH_CLIENT_ID, client_secret: GITHUB_OAUTH_CLIENT_SECRET, code, scope }),
       });
       const result = await response.json();
       const headers = {
