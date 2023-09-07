@@ -125,5 +125,9 @@ export const getUserGithubToken = async (github_id: string, groupId: number) => 
     return null;
   }
 
+  if(data.length === 0) {
+    return null;
+  }
+
   return data[0].token;
 };
