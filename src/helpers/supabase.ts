@@ -87,23 +87,43 @@ export const getRepoByGroupId = async (groupId: number) => {
 };
 
 export const bindGithubToTelegramUser = async (groupId: number, username: string, githubId: string, token: string) => {
-  const { data, error } = await supabase.from("tele_git_users_maps").upsert([
-    {
-      user_id: username,
-      group_id: groupId,
-      github_id: githubId,
-      token: token,
-      created_at: new Date().toUTCString(),
-      updated_at: new Date().toUTCString(),
-    },
-  ]);
+  const { data: existingRecord } = await supabase.from("tele_git_users_maps").select("id").eq("user_id", username).eq("group_id", groupId).single();
 
-  if (error) {
-    console.error("Error adding/updating user:", error.message);
-    return null;
+  const dataObj = {
+    user_id: username,
+    group_id: groupId,
+    github_id: githubId,
+    token: token,
+    created_at: new Date().toUTCString(),
+    updated_at: new Date().toUTCString()
   }
 
-  return data;
+  if(existingRecord) {
+    const { data, error } = await supabase.from("tele_git_users_maps").upsert([
+      {
+        id: existingRecord!.id,
+        ...dataObj
+      }
+    ]);
+
+    if (error) {
+      console.error("Error updating user:", error.message);
+      return null;
+    }
+
+    return data;
+  } else {
+    const { data, error } = await supabase.from("tele_git_users_maps").insert([
+      dataObj
+    ]);
+
+    if (error) {
+      console.error("Error adding user:", error.message);
+      return null;
+    }
+
+    return data;
+  }
 };
 
 export const getUserGithubId = async (github_id: string, groupId: number) => {
@@ -111,6 +131,10 @@ export const getUserGithubId = async (github_id: string, groupId: number) => {
 
   if (error) {
     console.error("Error getting user:", error.message);
+    return null;
+  }
+
+  if (data.length === 0) {
     return null;
   }
 
@@ -125,7 +149,7 @@ export const getUserGithubToken = async (github_id: string, groupId: number) => 
     return null;
   }
 
-  if(data.length === 0) {
+  if (data.length === 0) {
     return null;
   }
 
