@@ -196,6 +196,8 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     if (tagged) {
       github_id = await getUserGithubId(tagged, groupId);
       console.log("Tagged user found:", github_id);
+
+      !github_id && await sendReply(groupId, messageId, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true);
     }
 
     // remove tag from issue body
