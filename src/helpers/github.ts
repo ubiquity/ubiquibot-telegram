@@ -1,7 +1,7 @@
 import { GITHUB_PATHNAME } from "../constants";
 import { setUserSession } from "./session";
 import { replyMessage } from "./triggers";
-import { generateGitHubIssueBody, generateRandomId } from "./utils";
+import { capitalizeWords, generateGitHubIssueBody, generateRandomId } from "./utils";
 
 const GITHUB_API_URL = "https://api.github.com";
 
@@ -95,14 +95,19 @@ export const createIssue = async (
   issueTitle: string,
   messageText: string,
   messageLink: string,
-  tagged: number
+  tagged: number,
+  token: string
 ) => {
   console.log("Creating Github Issue:", organization, repository, issueTitle, messageText, messageLink, tagged);
   try {
     const apiUrl = `${GITHUB_API_URL}/repos/${organization}/${repository}/issues`;
 
+    const timeCapitalized = capitalizeWords(timeEstimate);
+
     // labels array
-    const labels = [`Time: <${timeEstimate}`];
+    const labels = token ? [] : [`Time: <${timeCapitalized}`]; // add no labels when using user token
+
+    console.log(labels)
 
     // create body
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
@@ -120,7 +125,7 @@ export const createIssue = async (
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
+        Authorization: `token ${token || GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": "Telegram Cloudflare Worker",
       },

@@ -19,6 +19,13 @@ export const escapeMarkdown = (str: string, except = "") => {
   return str.replace(regEx, "\\$&");
 };
 
+export const capitalizeWords = (inputString: string) => {
+  return inputString
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export const extractNumberWithoutPrefix = (text: string) => {
   const numberWithoutPrefix = text.replace(/^(-)?\d{3}/, "");
   return numberWithoutPrefix.length === 10 ? numberWithoutPrefix : null;
