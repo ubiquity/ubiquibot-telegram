@@ -1,3 +1,4 @@
+import { ENABLE_TOPIC } from "../constants";
 import { CallbackQueryType } from "../types/Basic";
 
 import { setUserSession } from "./session";
@@ -31,7 +32,13 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   // Use the item.key and item.value to generate menu items
   switch (item.key) {
     case "group":
-      const name = await getGroupDetails(item.value as number);
+      const { name, is_forum } = await getGroupDetails(item.value as number);
+
+      if (is_forum) {
+        await editBotMessage(chatId, messageId, `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`);
+        return;
+      }
+
       await editBotMessage(chatId, messageId, `Here is your group: *${name}* \nWhat do you want to do?`, [
         {
           text: "Link Github Repo",

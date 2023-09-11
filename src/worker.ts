@@ -237,11 +237,12 @@ const onMessage = async (message: MessageType, url: URL) => {
   const fromId = message.from.id; // get caller id
   const username = message.from.username;
   const messageId = message.message_id;
+  const forumName = message?.reply_to_message?.forum_topic_created?.name;
 
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
   }
 
   // Check if cooldown

@@ -1,8 +1,8 @@
-import { GITHUB_PATHNAME } from "../constants";
+import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
 import { KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
-import { addTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
+import { addTelegramBot, addTopic, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
 import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
@@ -57,13 +57,13 @@ export const getGroupDetails = async (chatId: number) => {
     // Check if the API response contains the bot's username
     if (data.ok && chat) {
       const name = chat.title || "N/A";
-      return name;
+      return {name, is_forum: chat.is_forum};
     } else {
       throw new Error("Bot username not found in API response");
     }
   } catch (error) {
     console.log("Error fetching bot username:", error);
-    return null;
+    return {name: null, is_forum: false}; // Fallback in case of error
   }
 };
 
@@ -122,6 +122,15 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   return true;
 };
 
+export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string) => {
+  if(!forumName) {
+    return await replyMessage(fromId, `Please, only use this command on a topic`);
+  }
+
+  await addTopic(chatId, forumName, "", true);
+  return await replyMessage(fromId, `Topic successfully added to list`);
+}
+
 export const handleSlashCommand = async (
   isPrivate: boolean,
   isSlash: boolean,
@@ -130,12 +139,15 @@ export const handleSlashCommand = async (
   chatId: number,
   username: string,
   url: URL,
-  messageId: number
+  messageId: number,
+  forumName: string
 ) => {
   if (!username && chatId) {
     await sendReply(chatId, messageId, escapeMarkdown(`Please, set a username to use this bot!\nSettings > Username`, "*`[]()@/"), true);
     return;
   }
+
+  const botName = await getBotUsername();
 
   if (isSlash) {
     const { command } = extractSlashCommand(text);
@@ -146,8 +158,11 @@ export const handleSlashCommand = async (
           await listGroupsWithBot(fromId, chatId); // private chat only
         }
         break;
-      case GITHUB_PATHNAME:
+      case GITHUB_PATHNAME || `${botName}${GITHUB_PATHNAME}`:
         await createGithubTelegramLink(username, fromId, chatId, url.origin);
+        break;
+      case ENABLE_TOPIC || `${botName}${ENABLE_TOPIC}`:
+        await enableTopicInGroup(fromId, chatId, messageId, forumName);
         break;
       default:
         break;

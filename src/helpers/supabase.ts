@@ -141,6 +141,46 @@ export const getUserGithubId = async (github_id: string, groupId: number) => {
   return data[0].github_id;
 };
 
+export const addTopic = async (groupId: number, forumName: string, githubRepo: string, enabled: boolean) => {
+  const { data: existingRecord } = await supabase.from("telegram_bot_forums").select("id").eq("group_id", groupId).eq("forum_name", forumName).single();
+
+  const dataObj = {
+    group_id: groupId,
+    forum_name: forumName,
+    github_repo: githubRepo,
+    enabled,
+    created_at: new Date().toUTCString(),
+    updated_at: new Date().toUTCString()
+  }
+
+  if(existingRecord) {
+    const { data, error } = await supabase.from("telegram_bot_forums").upsert([
+      {
+        id: existingRecord!.id,
+        ...dataObj
+      }
+    ]);
+
+    if (error) {
+      console.error("Error updating user:", error.message);
+      return null;
+    }
+
+    return data;
+  } else {
+    const { data, error } = await supabase.from("telegram_bot_forums").insert([
+      dataObj
+    ]);
+
+    if (error) {
+      console.error("Error adding user:", error.message);
+      return null;
+    }
+
+    return data;
+  }
+}
+
 export const getUserGithubToken = async (github_id: string, groupId: number) => {
   const { data, error } = await supabase.from("tele_git_users_maps").select("token").eq("user_id", github_id).eq("group_id", groupId);
 
