@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 
 export const setUserSession = async (
   key: number | string,
-  value: string | { telegramId?: number; username?: string; group?: number; v?: string; c?: string }
+  value: string | { telegramId?: number; username?: string; group?: number; v?: string; c?: string, k?: string }
 ) => {
   // check for previous session and delete before creating a new one
   if (value && typeof value === "object" && value.telegramId) {

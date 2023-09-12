@@ -71,6 +71,28 @@ export const linkGithubRepoToTelegram = async (fromId: number, chatId: number, g
   }
 };
 
+export const linkGithubRepoToTelegramForum = async (id: number, github_repo: string) => {
+  try {
+    const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", id);
+    if (data && data.length > 0) {
+      const { id, group_id, forum_name, enabled, created_at } = data[0];
+      await supabase.from("telegram_bot_forums").upsert({
+        id,
+        group_id,
+        forum_name,
+        github_repo,
+        enabled,
+        created_at,
+        updated_at: new Date().toUTCString(),
+      });
+    } else if (error) {
+      console.log("Error adding github_repo to supabase");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getRepoByGroupId = async (groupId: number) => {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select("github_repo").eq("id", groupId);
@@ -183,6 +205,21 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
 
 export const getTopic = async (groupId: number, forumName: string) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
+
+  if (error) {
+    console.error("Error getting topic:", error.message);
+    return null;
+  }
+
+  if (data.length === 0) {
+    return null;
+  }
+
+  return data[0];
+}
+
+export const getTopicById = async (topicId: number) => {
+  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", topicId);
 
   if (error) {
     console.error("Error getting topic:", error.message);

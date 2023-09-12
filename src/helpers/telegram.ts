@@ -2,7 +2,7 @@ import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
 import { KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
-import { addTelegramBot, addTopic, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
+import { addTelegramBot, addTopic, getTelegramBotByFromId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
 import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
@@ -97,7 +97,7 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
   }
 };
 
-export const handleSetGithubRepo = async (fromId: number, chatId: number, githubUrl: string) => {
+export const handleSetGithubRepo = async (fromId: number, chatId: number, chatType: string, githubUrl: string) => {
   const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
   const match = githubUrl.match(githubUrlRegex);
   if (!match) {
@@ -110,9 +110,17 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   const repoName = match[4];
 
   // Here, you can proceed with sending the GitHub URL to the database and returning a success message
-  await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
+  if(chatType === "group") {
+    await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
+  } else if (chatType === "forum") {
+    if(chatId.toString().startsWith("-")) {
+      await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
+    } else {
+      await linkGithubRepoToTelegramForum(chatId, `${orgName}/${repoName}`);
+    }
+  }
 
-  const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
+  const successMessage = `GitHub repository URL successfully set for ${chatType}: ${githubUrl}`;
   await replyMessage(fromId, successMessage, [
     {
       text: "« Back to Group List",
@@ -172,7 +180,7 @@ export const handleSlashCommand = async (
       const userContext = await getUserSession(chatId);
       switch (userContext.v) {
         case "link_github":
-          const saved = await handleSetGithubRepo(fromId, userContext.c, text);
+          const saved = await handleSetGithubRepo(fromId, userContext.c, userContext.k, text);
           if (saved) {
             await deleteUserSession(chatId);
           }
