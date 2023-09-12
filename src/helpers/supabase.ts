@@ -117,15 +117,15 @@ export const bindGithubToTelegramUser = async (groupId: number, username: string
     github_id: githubId,
     token: token,
     created_at: new Date().toUTCString(),
-    updated_at: new Date().toUTCString()
-  }
+    updated_at: new Date().toUTCString(),
+  };
 
-  if(existingRecord) {
+  if (existingRecord) {
     const { data, error } = await supabase.from("tele_git_users_maps").upsert([
       {
         id: existingRecord!.id,
-        ...dataObj
-      }
+        ...dataObj,
+      },
     ]);
 
     if (error) {
@@ -135,9 +135,7 @@ export const bindGithubToTelegramUser = async (groupId: number, username: string
 
     return data;
   } else {
-    const { data, error } = await supabase.from("tele_git_users_maps").insert([
-      dataObj
-    ]);
+    const { data, error } = await supabase.from("tele_git_users_maps").insert([dataObj]);
 
     if (error) {
       console.error("Error adding user:", error.message);
@@ -172,15 +170,15 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
     github_repo: githubRepo,
     enabled,
     created_at: new Date().toUTCString(),
-    updated_at: new Date().toUTCString()
-  }
+    updated_at: new Date().toUTCString(),
+  };
 
-  if(existingRecord) {
+  if (existingRecord) {
     const { data, error } = await supabase.from("telegram_bot_forums").upsert([
       {
         id: existingRecord!.id,
-        ...dataObj
-      }
+        ...dataObj,
+      },
     ]);
 
     if (error) {
@@ -190,9 +188,7 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
 
     return data;
   } else {
-    const { data, error } = await supabase.from("telegram_bot_forums").insert([
-      dataObj
-    ]);
+    const { data, error } = await supabase.from("telegram_bot_forums").insert([dataObj]);
 
     if (error) {
       console.error("Error adding user:", error.message);
@@ -201,7 +197,7 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
 
     return data;
   }
-}
+};
 
 export const getTopic = async (groupId: number, forumName: string) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
@@ -216,7 +212,7 @@ export const getTopic = async (groupId: number, forumName: string) => {
   }
 
   return data[0];
-}
+};
 
 export const getTopicById = async (topicId: number) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", topicId);
@@ -231,7 +227,7 @@ export const getTopicById = async (topicId: number) => {
   }
 
   return data[0];
-}
+};
 
 export const getTopics = async (groupId: number) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId);
@@ -246,7 +242,7 @@ export const getTopics = async (groupId: number) => {
   }
 
   return data;
-}
+};
 
 export const hasEnabledTopic = async (groupId: number) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("enabled", true);
@@ -261,7 +257,7 @@ export const hasEnabledTopic = async (groupId: number) => {
   }
 
   return true;
-}
+};
 
 export const getUserGithubToken = async (github_id: string, groupId: number) => {
   const { data, error } = await supabase.from("tele_git_users_maps").select("token").eq("user_id", github_id).eq("group_id", groupId);

@@ -21,10 +21,10 @@ export const escapeMarkdown = (str: string, except = "") => {
 
 export const capitalizeWords = (inputString: string) => {
   return inputString
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 export const extractNumberWithoutPrefix = (text: string) => {
   const numberWithoutPrefix = text.replace(/^(-)?\d{3}/, "");

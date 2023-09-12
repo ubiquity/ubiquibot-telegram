@@ -41,14 +41,18 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   switch (item.key) {
     case "group":
       const { name, is_forum } = await getGroupDetails(item.value as number);
-      const hasTopics = await hasEnabledTopic(item.value as number)
+      const hasTopics = await hasEnabledTopic(item.value as number);
 
       if (is_forum && !hasTopics) {
-        return await editBotMessage(chatId, messageId, `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`);
+        return await editBotMessage(
+          chatId,
+          messageId,
+          `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`
+        );
       } else if (is_forum && hasTopics) {
         // list topics
         const topicList = await getTopics(item.value as number);
-        
+
         if (topicList && topicList.length > 0) {
           const keyboardRes: KeyboardDataType[] = topicList.map((e) => ({
             text: e.forum_name,
@@ -59,7 +63,7 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
           keyboardRes.unshift({
             text: "General",
             callback_data: `${callbackQuery.data},forum:${item.value as number}`,
-          })
+          });
 
           return messageId
             ? await editBotMessage(chatId, messageId, "Choose a topic from the list below:", keyboardRes)
@@ -82,7 +86,7 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
       await listGroupsWithBot(fromId, chatId, messageId);
       break;
     case "forum":
-      if(item.value.toString().startsWith("-")) {
+      if (item.value.toString().startsWith("-")) {
         return await editBotMessage(chatId, messageId, `Here is your forum: *General* \nWhat do you want to do?`, keyboardMainMenuRes);
       }
       const forum = await getTopicById(item.value as number);

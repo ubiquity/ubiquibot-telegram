@@ -35,7 +35,7 @@ export type MessageType = {
   reply_to_message: {
     forum_topic_created: {
       name: string;
-    }
+    };
   };
 };
 

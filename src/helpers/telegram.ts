@@ -57,13 +57,13 @@ export const getGroupDetails = async (chatId: number) => {
     // Check if the API response contains the bot's username
     if (data.ok && chat) {
       const name = chat.title || "N/A";
-      return {name, is_forum: chat.is_forum};
+      return { name, is_forum: chat.is_forum };
     } else {
       throw new Error("Bot username not found in API response");
     }
   } catch (error) {
     console.log("Error fetching bot username:", error);
-    return {name: null, is_forum: false}; // Fallback in case of error
+    return { name: null, is_forum: false }; // Fallback in case of error
   }
 };
 
@@ -110,10 +110,10 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, chatTy
   const repoName = match[4];
 
   // Here, you can proceed with sending the GitHub URL to the database and returning a success message
-  if(chatType === "group") {
+  if (chatType === "group") {
     await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
   } else if (chatType === "forum") {
-    if(chatId.toString().startsWith("-")) {
+    if (chatId.toString().startsWith("-")) {
       await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
     } else {
       await linkGithubRepoToTelegramForum(chatId, `${orgName}/${repoName}`);
@@ -131,13 +131,13 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, chatTy
 };
 
 export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string) => {
-  if(!forumName) {
+  if (!forumName) {
     return await sendReply(chatId, messageId, escapeMarkdown(`Please, only use this command on a topic`, "*`[]()@/"), true);
   }
 
   await addTopic(chatId, forumName, "", true);
   return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
-}
+};
 
 export const handleSlashCommand = async (
   isPrivate: boolean,
