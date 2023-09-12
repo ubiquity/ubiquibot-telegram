@@ -2,7 +2,7 @@
  * All console.log for debugging the worker on cloudflare dashboard
  */
 
-import { GITHUB_PATHNAME } from "./constants";
+import { BOT_COMMANDS, GITHUB_PATHNAME } from "./constants";
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
@@ -38,6 +38,8 @@ addEventListener("fetch", async (event: Event) => {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
     await ev.respondWith(unRegisterWebhook());
+  } else if (url.pathname === "/setCommands") {
+    await ev.respondWith(setCommands());
   } else {
     await ev.respondWith(new Response("No handler for this request"));
   }
@@ -103,11 +105,31 @@ const registerWebhook = async (requestUrl: URL, suffix: string, secret: string) 
 };
 
 /**
+ * Set commands
+ * https://core.telegram.org/bots/api#setmycommands
+ */
+const setCommands = async () => {
+  const r = await fetch(apiUrl("setMyCommands", {}), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      commands: BOT_COMMANDS,
+      scope: { type: "default" },
+      language_code: "en",
+    }),
+  });
+  return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
+};
+
+/**
  * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
 const unRegisterWebhook = async () => {
   const r = await (await fetch(apiUrl("setWebhook", { url: "" }))).json();
+  await setCommands();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
 };
 

@@ -14,6 +14,14 @@ export type ApiParam = {
   url?: string;
   secret_token?: string;
   channel?: number;
+  commands?: {
+    command: string;
+    description: string;
+  }[];
+  language_code?: string;
+  scope?: {
+    type: string;
+  };
 };
 
 export type DataType = {
