@@ -159,6 +159,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
   const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
   const messageText = callbackQuery.message.text; // text of current message
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
+  const forumName = callbackQuery.message?.reply_to_message?.forum_topic_created?.name;
 
   const isAdmin = await isAdminOfChat(clickerId, groupId);
   // clicker needs to be the creator or admin
@@ -180,12 +181,12 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
       return;
     }
 
-    const { repoName, orgName } = await getRepoData(groupId);
+    const { repoName, orgName } = await getRepoData(groupId, forumName);
 
     console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
     if (!repoName || !orgName) {
-      console.log(`No Github data mapped to channel`);
+      console.log(`No Github data mapped to chat`);
       return;
     }
 
@@ -274,14 +275,14 @@ const onMessage = async (message: MessageType, url: URL) => {
   // Update the last analysis timestamp upon successful analysis
   setLastAnalysisTimestamp(Date.now());
 
-  const { repoName, orgName } = await getRepoData(chatId);
+  const { repoName, orgName } = await getRepoData(chatId, forumName);
 
   if (!repoName || !orgName) {
-    console.log(`No Github data mapped to channel`);
+    console.log(`No Github data mapped to chat`);
     return sendReply(
       chatId,
       messageId,
-      escapeMarkdown(`No Github mapped to this channel, please use the /start command in private chat to set this up`, "*`[]()@/"),
+      escapeMarkdown(`No Github mapped to this chat, please use the /start command in private chat to set this up`, "*`[]()@/"),
       true
     );
   }

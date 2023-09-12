@@ -65,6 +65,9 @@ export type CallbackQueryType = {
       };
       message_id: number;
       text: string;
+      forum_topic_created: {
+        name: string;
+      };
     };
     chat: {
       id: number;
