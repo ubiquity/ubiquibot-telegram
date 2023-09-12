@@ -156,6 +156,7 @@ export const handleSlashCommand = async (
   }
 
   const botName = await getBotUsername();
+  console.log(botName);
 
   if (isSlash) {
     const { command } = extractSlashCommand(text);
@@ -166,10 +167,12 @@ export const handleSlashCommand = async (
           await listGroupsWithBot(fromId, chatId); // private chat only
         }
         break;
-      case GITHUB_PATHNAME || `${botName}${GITHUB_PATHNAME}`:
+      case GITHUB_PATHNAME:
+      case `${GITHUB_PATHNAME}@${botName}`:
         await createGithubTelegramLink(username, fromId, chatId, url.origin);
         break;
-      case ENABLE_TOPIC || `${botName}${ENABLE_TOPIC}`:
+      case ENABLE_TOPIC:
+      case `${ENABLE_TOPIC}@${botName}`:
         await enableTopicInGroup(fromId, chatId, messageId, forumName);
         break;
       default:
