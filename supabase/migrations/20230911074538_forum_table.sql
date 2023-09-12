@@ -1,6 +1,6 @@
 CREATE TABLE telegram_bot_forums (
     id SERIAL PRIMARY KEY,
-    group_id INT NOT NULL,
+    group_id bigint NOT NULL,
     forum_name VARCHAR(255) NOT NULL,
     github_repo VARCHAR(255) NOT NULL,
     enabled BOOLEAN NOT NULL,

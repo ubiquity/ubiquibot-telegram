@@ -181,6 +181,51 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
   }
 }
 
+export const getTopic = async (groupId: number, forumName: string) => {
+  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
+
+  if (error) {
+    console.error("Error getting topic:", error.message);
+    return null;
+  }
+
+  if (data.length === 0) {
+    return null;
+  }
+
+  return data[0];
+}
+
+export const getTopics = async (groupId: number) => {
+  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId);
+
+  if (error) {
+    console.error("Error getting topic:", error.message);
+    return null;
+  }
+
+  if (data.length === 0) {
+    return null;
+  }
+
+  return data;
+}
+
+export const hasEnabledTopic = async (groupId: number) => {
+  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("enabled", true);
+
+  if (error) {
+    console.error("Error getting topic:", error.message);
+    return null;
+  }
+
+  if (data.length === 0) {
+    return false;
+  }
+
+  return true;
+}
+
 export const getUserGithubToken = async (github_id: string, groupId: number) => {
   const { data, error } = await supabase.from("tele_git_users_maps").select("token").eq("user_id", github_id).eq("group_id", groupId);
 

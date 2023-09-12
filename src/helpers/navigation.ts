@@ -1,9 +1,10 @@
 import { ENABLE_TOPIC } from "../constants";
-import { CallbackQueryType } from "../types/Basic";
+import { CallbackQueryType, KeyboardDataType } from "../types/Basic";
 
 import { setUserSession } from "./session";
+import { getTopics, hasEnabledTopic } from "./supabase";
 import { getGroupDetails, listGroupsWithBot } from "./telegram";
-import { editBotMessage } from "./triggers";
+import { editBotMessage, replyMessage } from "./triggers";
 import { parseCallData } from "./utils";
 
 export const handleFirstMenu = async (value: string, chatId: number, messageId: number, groupData: string) => {
@@ -33,9 +34,29 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   switch (item.key) {
     case "group":
       const { name, is_forum } = await getGroupDetails(item.value as number);
+      const hasTopics = await hasEnabledTopic(item.value as number)
 
-      if (is_forum) {
-        await editBotMessage(chatId, messageId, `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`);
+      if (is_forum && !hasTopics) {
+        return await editBotMessage(chatId, messageId, `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`);
+      } else if (is_forum && hasTopics) {
+        // list topics
+        const topicList = await getTopics(item.value as number);
+        
+        if (topicList && topicList.length > 0) {
+          // add general topic to list
+          topicList.push({
+            text: "General",
+            callback_data: `forum:general`,
+          })
+
+          const keyboardRes: KeyboardDataType[] = topicList.map((e) => ({
+            text: e.forum_name,
+            callback_data: `forum:${e.id}`,
+          }));
+          return messageId
+            ? await editBotMessage(chatId, messageId, "Choose a topic from the list below:", keyboardRes)
+            : await replyMessage(chatId, "Choose a group from the list below:", keyboardRes);
+        }
         return;
       }
 

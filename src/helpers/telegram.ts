@@ -124,11 +124,11 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
 
 export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string) => {
   if(!forumName) {
-    return await replyMessage(fromId, `Please, only use this command on a topic`);
+    return await sendReply(chatId, messageId, escapeMarkdown(`Please, only use this command on a topic`, "*`[]()@/"), true);
   }
 
   await addTopic(chatId, forumName, "", true);
-  return await replyMessage(fromId, `Topic successfully added to list`);
+  return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
 }
 
 export const handleSlashCommand = async (
