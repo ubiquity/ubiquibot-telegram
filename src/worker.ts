@@ -181,7 +181,6 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
   const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
   const messageText = callbackQuery.message.text; // text of current message
   const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
-  const forumName = callbackQuery.message?.reply_to_message?.forum_topic_created?.name;
 
   const isAdmin = await isAdminOfChat(clickerId, groupId);
   // clicker needs to be the creator or admin
@@ -196,14 +195,12 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     // get message link
     const messageLink = generateMessageLink(messageIdReply, groupId);
 
-    const { title, timeEstimate } = extractTaskInfo(messageText);
+    const { title, timeEstimate, orgName, repoName } = extractTaskInfo(messageText);
 
     if (title === null || timeEstimate === null) {
       console.log(`Task title is null`);
       return;
-    }
-
-    const { repoName, orgName } = await getRepoData(groupId, forumName);
+    } 
 
     console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
