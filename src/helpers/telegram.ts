@@ -131,6 +131,12 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, chatTy
 };
 
 export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string) => {
+  const isAdmin = await isAdminOfChat(fromId, chatId);
+
+  if (!isAdmin) {
+    return await sendReply(chatId, messageId, escapeMarkdown(`You must be an admin to use this command`, "*`[]()@/"), true);
+  }
+
   if (!forumName) {
     return await sendReply(chatId, messageId, escapeMarkdown(`Please, only use this command on a topic`, "*`[]()@/"), true);
   }
