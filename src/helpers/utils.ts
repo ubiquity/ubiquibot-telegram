@@ -99,8 +99,8 @@ export const generateMessageLink = (messageId: number, groupId: number) => {
 };
 
 export const generateGitHubIssueBody = (interceptedMessage: string, telegramMessageLink: string) => {
-  const quotedMessage = `> ${interceptedMessage.replace(/\n/g, "\n> ")}\n\n`;
-  const footer = `###### [ **[ View Conversation Context ]** ](${telegramMessageLink})`;
+  const quotedMessage = `${interceptedMessage}\n\n`;
+  const footer = `###### [ **[ View on Telegram ]** ](${telegramMessageLink})`;
   return `${quotedMessage}${footer}`;
 };
 
