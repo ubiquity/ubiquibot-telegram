@@ -45,8 +45,8 @@ jobs:
           SUPABASE_KEY: ${{ secrets.SUPABASE_PROJECT_KEY_DEV }}
           SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL_DEV }}
           DEFAULT_PRIORITY: "Priority: 0 (Normal)"
-          GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GITHUB_OAUTH_CLIENT_ID }}
-          GITHUB_OAUTH_CLIENT_SECRET: ${{ secrets.GITHUB_OAUTH_CLIENT_SECRET }}
+          GITHUB_OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+          GITHUB_OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
           GITHUB_INSTALLATION_TOKEN: ${{ steps.get_installation_token.outputs.token }}
         run: |
           # Populate Cloudflare Worker secrets
