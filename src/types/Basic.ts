@@ -13,6 +13,15 @@ export type ApiParam = {
   callback_query_id?: number;
   url?: string;
   secret_token?: string;
+  channel?: number;
+  commands?: {
+    command: string;
+    description: string;
+  }[];
+  language_code?: string;
+  scope?: {
+    type: string;
+  };
 };
 
 export type DataType = {
@@ -30,6 +39,11 @@ export type MessageType = {
   from: {
     id: number;
     username: string;
+  };
+  reply_to_message: {
+    forum_topic_created: {
+      name: string;
+    };
   };
 };
 
@@ -59,6 +73,9 @@ export type CallbackQueryType = {
       };
       message_id: number;
       text: string;
+      forum_topic_created: {
+        name: string;
+      };
     };
     chat: {
       id: number;

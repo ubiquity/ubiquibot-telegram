@@ -1,15 +1,17 @@
-import { CallbackQueryType } from "../types/Basic";
+import { ENABLE_TOPIC } from "../constants";
+import { CallbackQueryType, KeyboardDataType } from "../types/Basic";
 
 import { setUserSession } from "./session";
+import { getTopicById, getTopics, hasEnabledTopic } from "./supabase";
 import { getGroupDetails, listGroupsWithBot } from "./telegram";
-import { editBotMessage } from "./triggers";
+import { editBotMessage, replyMessage } from "./triggers";
 import { parseCallData } from "./utils";
 
-export const handleFirstMenu = async (value: string, chatId: number, messageId: number, groupData: string) => {
+export const handleFirstMenu = async (value: string, chatId: number, messageId: number, groupKey: string, groupData: string) => {
   switch (value) {
     case "link_github":
-      await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this group.`);
-      await setUserSession(chatId, { v: "link_github", c: groupData });
+      await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this ${groupKey}.`);
+      await setUserSession(chatId, { v: "link_github", c: groupData, k: groupKey });
       break;
     default:
       break;
@@ -28,23 +30,67 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
 
   const item = parsedData[parsedData.length - 1]; // select the last calldata
 
+  const keyboardMainMenuRes: KeyboardDataType[] = [
+    {
+      text: "Link Github Repo",
+      callback_data: `${callbackQuery.data},menu:link_github`,
+    },
+  ];
+
   // Use the item.key and item.value to generate menu items
   switch (item.key) {
     case "group":
-      const name = await getGroupDetails(item.value as number);
-      await editBotMessage(chatId, messageId, `Here is your group: *${name}* \nWhat do you want to do?`, [
-        {
-          text: "Link Github Repo",
-          callback_data: `${callbackQuery.data},menu:link_github`,
-        },
-      ]);
+      const { name, is_forum } = await getGroupDetails(item.value as number);
+      const hasTopics = await hasEnabledTopic(item.value as number);
+
+      if (is_forum && !hasTopics) {
+        return await editBotMessage(
+          chatId,
+          messageId,
+          `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`
+        );
+      } else if (is_forum && hasTopics) {
+        // list topics
+        const topicList = await getTopics(item.value as number);
+
+        if (topicList && topicList.length > 0) {
+          const keyboardRes: KeyboardDataType[] = topicList.map((e) => ({
+            text: e.forum_name,
+            callback_data: `${callbackQuery.data},forum:${e.id}`,
+          }));
+
+          // add general topic to list
+          keyboardRes.unshift({
+            text: "General",
+            callback_data: `${callbackQuery.data},forum:${item.value as number}`,
+          });
+
+          return messageId
+            ? await editBotMessage(chatId, messageId, "Choose a topic from the list below:", keyboardRes)
+            : await replyMessage(chatId, "Choose a topic from the list below:", keyboardRes);
+        }
+        return;
+      }
+
+      await editBotMessage(chatId, messageId, `Here is your group: *${name}* \nWhat do you want to do?`, keyboardMainMenuRes);
       break;
     case "menu":
-      const groupData = parsedData[0];
-      await handleFirstMenu(item.value as string, chatId, messageId, groupData.value as string);
+      // fetch all keys and get the one with key as forum, if none, then find the one with group
+      const groupData = parsedData.find((e) => e.key === "group") as { key: string; value: string };
+      const forumData = parsedData.find((e) => e.key === "forum") as { key: string; value: string };
+
+      const data = forumData ? forumData : groupData;
+      await handleFirstMenu(item.value as string, chatId, messageId, data.key, data.value as string);
       break;
     case "group_list":
       await listGroupsWithBot(fromId, chatId, messageId);
+      break;
+    case "forum":
+      if (item.value.toString().startsWith("-")) {
+        return await editBotMessage(chatId, messageId, `Here is your forum: *General* \nWhat do you want to do?`, keyboardMainMenuRes);
+      }
+      const forum = await getTopicById(item.value as number);
+      await editBotMessage(chatId, messageId, `Here is your forum: *${forum.forum_name}* \nWhat do you want to do?`, keyboardMainMenuRes);
       break;
     default:
       console.log(`Unknown key: ${item.key}`);

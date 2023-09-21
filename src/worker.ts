@@ -2,12 +2,12 @@
  * All console.log for debugging the worker on cloudflare dashboard
  */
 
-import { GITHUB_PATHNAME } from "./constants";
+import { BOT_COMMANDS, ENABLE_TOPIC, GITHUB_PATHNAME } from "./constants";
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
-import { getUserGithubId, getUserGithubToken } from "./helpers/supabase";
+import { getTopic, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
 import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -38,6 +38,8 @@ addEventListener("fetch", async (event: Event) => {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
     await ev.respondWith(unRegisterWebhook());
+  } else if (url.pathname === "/setCommands") {
+    await ev.respondWith(setCommands());
   } else {
     await ev.respondWith(new Response("No handler for this request"));
   }
@@ -103,11 +105,31 @@ const registerWebhook = async (requestUrl: URL, suffix: string, secret: string) 
 };
 
 /**
+ * Set commands
+ * https://core.telegram.org/bots/api#setmycommands
+ */
+const setCommands = async () => {
+  const r = await fetch(apiUrl("setMyCommands", {}), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      commands: BOT_COMMANDS,
+      scope: { type: "default" },
+      language_code: "en",
+    }),
+  });
+  return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
+};
+
+/**
  * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
 const unRegisterWebhook = async () => {
   const r = await (await fetch(apiUrl("setWebhook", { url: "" }))).json();
+  await setCommands();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
 };
 
@@ -173,19 +195,17 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     // get message link
     const messageLink = generateMessageLink(messageIdReply, groupId);
 
-    const { title, timeEstimate } = extractTaskInfo(messageText);
+    const { title, timeEstimate, orgName, repoName } = extractTaskInfo(messageText);
 
     if (title === null || timeEstimate === null) {
       console.log(`Task title is null`);
       return;
-    }
-
-    const { repoName, orgName } = await getRepoData(groupId);
+    } 
 
     console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
     if (!repoName || !orgName) {
-      console.log(`No Github data mapped to channel`);
+      console.log(`No Github data mapped to chat`);
       return;
     }
 
@@ -197,7 +217,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
       github_id = await getUserGithubId(tagged, groupId);
       console.log("Tagged user found:", github_id);
 
-      !github_id && await sendReply(groupId, messageId, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true);
+      !github_id && (await sendReply(groupId, messageId, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true));
     }
 
     // remove tag from issue body
@@ -237,11 +257,12 @@ const onMessage = async (message: MessageType, url: URL) => {
   const fromId = message.from.id; // get caller id
   const username = message.from.username;
   const messageId = message.message_id;
+  const forumName = message?.reply_to_message?.forum_topic_created?.name;
 
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
   }
 
   // Check if cooldown
@@ -270,17 +291,25 @@ const onMessage = async (message: MessageType, url: URL) => {
 
   const { issueTitle, timeEstimate } = GPT3Info;
 
+  if (forumName) {
+    const res = await getTopic(chatId, forumName);
+    if (!res || !res.enabled) {
+      console.log(`Skipping, topic not enabled`);
+      return sendReply(chatId, messageId, escapeMarkdown(`Topic not enabled, please use the ${ENABLE_TOPIC} command to enable`, "*`[]()@/"), true);
+    }
+  }
+
   // Update the last analysis timestamp upon successful analysis
   setLastAnalysisTimestamp(Date.now());
 
-  const { repoName, orgName } = await getRepoData(chatId);
+  const { repoName, orgName } = await getRepoData(chatId, forumName);
 
   if (!repoName || !orgName) {
-    console.log(`No Github data mapped to channel`);
+    console.log(`No Github data mapped to chat`);
     return sendReply(
       chatId,
       messageId,
-      escapeMarkdown(`No Github mapped to this channel, please use the /start command in private chat to set this up`, "*`[]()@/"),
+      escapeMarkdown(`No Github mapped to this chat, please use the /start command in private chat to set this up`, "*`[]()@/"),
       true
     );
   }

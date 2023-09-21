@@ -1,5 +1,5 @@
 import { ParsedDataType, TaskInfoType } from "../types/Basic";
-import { getRepoByGroupId } from "./supabase";
+import { getRepoByGroupId, getTopic } from "./supabase";
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
@@ -21,10 +21,10 @@ export const escapeMarkdown = (str: string, except = "") => {
 
 export const capitalizeWords = (inputString: string) => {
   return inputString
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 export const extractNumberWithoutPrefix = (text: string) => {
   const numberWithoutPrefix = text.replace(/^(-)?\d{3}/, "");
@@ -71,8 +71,14 @@ export const removeNewlinesAndExtractValues = (text: string) => {
 /**
  * Get repo data from mapping
  */
-export const getRepoData = async (groupId: number) => {
-  const data = await getRepoByGroupId(groupId);
+export const getRepoData = async (groupId: number, forumName: string) => {
+  let data;
+  if (forumName) {
+    const res = await getTopic(groupId, forumName);
+    data = res?.github_repo;
+  } else {
+    data = await getRepoByGroupId(groupId);
+  }
   if (data) {
     const orgName = data.split("/")[0];
     const repoName = data.split("/")[1];

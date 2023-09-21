@@ -1,7 +1,7 @@
 import { GITHUB_PATHNAME } from "../constants";
 import { setUserSession } from "./session";
 import { replyMessage } from "./triggers";
-import { capitalizeWords, generateGitHubIssueBody, generateRandomId } from "./utils";
+import { capitalizeWords, generateGitHubIssueBody } from "./utils";
 
 const GITHUB_API_URL = "https://api.github.com";
 
@@ -107,7 +107,7 @@ export const createIssue = async (
     // labels array
     const labels = token ? [] : [`Time: <${timeCapitalized}`]; // add no labels when using user token
 
-    console.log(labels)
+    console.log(labels);
 
     // create body
     const issueBody = generateGitHubIssueBody(messageText, messageLink);

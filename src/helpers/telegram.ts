@@ -1,8 +1,8 @@
-import { GITHUB_PATHNAME } from "../constants";
+import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
 import { KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
-import { addTelegramBot, getTelegramBotByFromId, linkGithubRepoToTelegram } from "./supabase";
+import { addTelegramBot, addTopic, getTelegramBotByFromId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
 import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
@@ -57,13 +57,13 @@ export const getGroupDetails = async (chatId: number) => {
     // Check if the API response contains the bot's username
     if (data.ok && chat) {
       const name = chat.title || "N/A";
-      return name;
+      return { name, is_forum: chat.is_forum };
     } else {
       throw new Error("Bot username not found in API response");
     }
   } catch (error) {
     console.log("Error fetching bot username:", error);
-    return null;
+    return { name: null, is_forum: false }; // Fallback in case of error
   }
 };
 
@@ -97,7 +97,7 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
   }
 };
 
-export const handleSetGithubRepo = async (fromId: number, chatId: number, githubUrl: string) => {
+export const handleSetGithubRepo = async (fromId: number, chatId: number, chatType: string, githubUrl: string) => {
   const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
   const match = githubUrl.match(githubUrlRegex);
   if (!match) {
@@ -110,9 +110,17 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
   const repoName = match[4];
 
   // Here, you can proceed with sending the GitHub URL to the database and returning a success message
-  await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
+  if (chatType === "group") {
+    await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
+  } else if (chatType === "forum") {
+    if (chatId.toString().startsWith("-")) {
+      await linkGithubRepoToTelegram(fromId, chatId, `${orgName}/${repoName}`);
+    } else {
+      await linkGithubRepoToTelegramForum(chatId, `${orgName}/${repoName}`);
+    }
+  }
 
-  const successMessage = `GitHub repository URL successfully set: ${githubUrl}`;
+  const successMessage = `GitHub repository URL successfully set for ${chatType}: ${githubUrl}`;
   await replyMessage(fromId, successMessage, [
     {
       text: "« Back to Group List",
@@ -120,6 +128,21 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, github
     },
   ]);
   return true;
+};
+
+export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string) => {
+  const isAdmin = await isAdminOfChat(fromId, chatId);
+
+  if (!isAdmin) {
+    return await sendReply(chatId, messageId, escapeMarkdown(`You must be an admin to use this command`, "*`[]()@/"), true);
+  }
+
+  if (!forumName) {
+    return await sendReply(chatId, messageId, escapeMarkdown(`Please, only use this command on a topic`, "*`[]()@/"), true);
+  }
+
+  await addTopic(chatId, forumName, "", true);
+  return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
 };
 
 export const handleSlashCommand = async (
@@ -130,12 +153,16 @@ export const handleSlashCommand = async (
   chatId: number,
   username: string,
   url: URL,
-  messageId: number
+  messageId: number,
+  forumName: string
 ) => {
   if (!username && chatId) {
     await sendReply(chatId, messageId, escapeMarkdown(`Please, set a username to use this bot!\nSettings > Username`, "*`[]()@/"), true);
     return;
   }
+
+  const botName = await getBotUsername();
+  console.log(botName);
 
   if (isSlash) {
     const { command } = extractSlashCommand(text);
@@ -147,7 +174,12 @@ export const handleSlashCommand = async (
         }
         break;
       case GITHUB_PATHNAME:
+      case `${GITHUB_PATHNAME}@${botName}`:
         await createGithubTelegramLink(username, fromId, chatId, url.origin);
+        break;
+      case ENABLE_TOPIC:
+      case `${ENABLE_TOPIC}@${botName}`:
+        await enableTopicInGroup(fromId, chatId, messageId, forumName);
         break;
       default:
         break;
@@ -157,7 +189,7 @@ export const handleSlashCommand = async (
       const userContext = await getUserSession(chatId);
       switch (userContext.v) {
         case "link_github":
-          const saved = await handleSetGithubRepo(fromId, userContext.c, text);
+          const saved = await handleSetGithubRepo(fromId, userContext.c, userContext.k, text);
           if (saved) {
             await deleteUserSession(chatId);
           }
