@@ -103,6 +103,12 @@ export const createIssue = async (
     const apiUrl = `${GITHUB_API_URL}/repos/${organization}/${repository}/issues`;
 
     const timeCapitalized = capitalizeWords(timeEstimate);
+    let titleCapitalized = capitalizeWords(issueTitle);
+
+    // remove punctuation at the end of the titleCapitalized if it exists
+    if (titleCapitalized[titleCapitalized.length - 1].match(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g)) {
+      titleCapitalized = titleCapitalized.slice(0, -1);
+    }
 
     // labels array
     const labels = token ? [] : [`Time: <${timeCapitalized}`]; // add no labels when using user token
@@ -130,7 +136,7 @@ export const createIssue = async (
         "User-Agent": "Telegram Cloudflare Worker",
       },
       body: JSON.stringify({
-        title: issueTitle,
+        title: titleCapitalized,
         body: issueBody,
         labels,
         assignees,
