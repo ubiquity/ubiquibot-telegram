@@ -1,5 +1,5 @@
 import { ApiParam, DataType, KeyboardDataType } from "../types/Basic";
-import { escapeMarkdown } from "./utils";
+import { createKeyboardRow, escapeMarkdown } from "./utils";
 
 /**
  * Return url to telegram api, optionally with parameters added
@@ -64,6 +64,7 @@ export const sendReply = async (chatId: number, messageId: number, text: string,
 };
 
 export const replyMessage = async (chatId: number, text: string, keyboardValues: KeyboardDataType[] = []) => {
+  const keyboardValuesRow = createKeyboardRow(keyboardValues);
   return (
     await fetch(
       apiUrl("sendMessage", {
@@ -71,7 +72,7 @@ export const replyMessage = async (chatId: number, text: string, keyboardValues:
         text: escapeMarkdown(text, "*`[]()@"),
         parse_mode: "MarkdownV2",
         reply_markup: JSON.stringify({
-          inline_keyboard: [keyboardValues],
+          inline_keyboard: keyboardValuesRow,
         }),
       })
     )
@@ -79,6 +80,7 @@ export const replyMessage = async (chatId: number, text: string, keyboardValues:
 };
 
 export const editBotMessage = async (chatId: number, messageId: number, newText: string, keyboardValues: KeyboardDataType[] = []) => {
+  const keyboardValuesRow = createKeyboardRow(keyboardValues);
   try {
     const response = await fetch(
       apiUrl("editMessageText", {
@@ -87,7 +89,7 @@ export const editBotMessage = async (chatId: number, messageId: number, newText:
         text: escapeMarkdown(newText, "*`[]()@"),
         parse_mode: "MarkdownV2",
         reply_markup: JSON.stringify({
-          inline_keyboard: [keyboardValues],
+          inline_keyboard: keyboardValuesRow,
         }),
       })
     );

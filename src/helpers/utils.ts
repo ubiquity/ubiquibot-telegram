@@ -1,4 +1,4 @@
-import { ParsedDataType, TaskInfoType } from "../types/Basic";
+import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/Basic";
 import { getRepoByGroupId, getTopic } from "./supabase";
 
 // global variable to track the last successful analysis timestamp
@@ -172,6 +172,20 @@ export const parseCallData = (callData: string): ParsedDataType[] => {
   }
 
   return result;
+};
+
+// divide keyboardValues into chunks of 2
+export const createKeyboardRow = (keyboardValues: KeyboardDataType[]) => {
+  const res = keyboardValues.reduce((acc: KeyboardDataType[][], cur, i) => {
+    const index = Math.floor(i / 2);
+    if (!acc[index]) {
+      acc[index] = [];
+    }
+    acc[index].push(cur);
+    return acc;
+  }, []);
+
+  return res;
 };
 
 export const getLastAnalysisTimestamp = () => lastAnalysisTimestamp;
