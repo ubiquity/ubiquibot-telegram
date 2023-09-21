@@ -98,7 +98,7 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
 };
 
 export const handleSetGithubRepo = async (fromId: number, chatId: number, chatType: string, githubUrl: string) => {
-  const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w-]+)(\/.*)?$/i;
+  const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w.-]+)(\/.*)?$/i;
   const match = githubUrl.match(githubUrlRegex);
   if (!match) {
     const errorMessage = `Invalid GitHub URL. Please provide a valid GitHub repository URL.\n\nExamples:\n- https://github.com/user/repo\n- https://www.github.com/user/repo`;
