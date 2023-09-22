@@ -75,10 +75,11 @@ export const linkGithubRepoToTelegramForum = async (id: number, github_repo: str
   try {
     const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", id);
     if (data && data.length > 0) {
-      const { id, group_id, forum_name, enabled, created_at } = data[0];
+      const { id, group_id, thread_id, forum_name, enabled, created_at } = data[0];
       await supabase.from("telegram_bot_forums").upsert({
         id,
         group_id,
+        thread_id,
         forum_name,
         github_repo,
         enabled,
@@ -161,11 +162,17 @@ export const getUserGithubId = async (github_id: string, groupId: number) => {
   return data[0].github_id;
 };
 
-export const addTopic = async (groupId: number, forumName: string, githubRepo: string, enabled: boolean) => {
-  const { data: existingRecord } = await supabase.from("telegram_bot_forums").select("id").eq("group_id", groupId).eq("forum_name", forumName).single();
+export const addTopic = async (groupId: number, threadId: number, forumName: string, githubRepo: string, enabled: boolean) => {
+  const { data: existingRecord } = await supabase
+    .from("telegram_bot_forums")
+    .select("id, github_repo")
+    .eq("group_id", groupId)
+    .eq("thread_id", threadId)
+    .single();
 
   const dataObj = {
     group_id: groupId,
+    thread_id: threadId,
     forum_name: forumName,
     github_repo: githubRepo,
     enabled,
@@ -178,6 +185,7 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
       {
         id: existingRecord!.id,
         ...dataObj,
+        github_repo: existingRecord!.github_repo,
       },
     ]);
 
@@ -201,6 +209,21 @@ export const addTopic = async (groupId: number, forumName: string, githubRepo: s
 
 export const getTopic = async (groupId: number, forumName: string) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
+
+  if (error) {
+    console.error("Error getting topic:", error.message);
+    return null;
+  }
+
+  if (data.length === 0) {
+    return null;
+  }
+
+  return data[0];
+};
+
+export const getTopicByThreadId = async (groupId: number, threadId: number) => {
+  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("thread_id", threadId).eq("group_id", groupId);
 
   if (error) {
     console.error("Error getting topic:", error.message);

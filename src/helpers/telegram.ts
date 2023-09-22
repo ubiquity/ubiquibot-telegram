@@ -1,8 +1,8 @@
 import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
-import { KeyboardDataType } from "../types/Basic";
+import { ForumTopicEditedType, KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
-import { addTelegramBot, addTopic, getTelegramBotByFromId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
+import { addTelegramBot, addTopic, getTelegramBotByFromId, getTopicByThreadId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
 import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
@@ -68,7 +68,7 @@ export const getGroupDetails = async (chatId: number) => {
 };
 
 export const isBotAdded = async (chatId: number, fromId: number, groupName: string, previousStatus: string) => {
-  if(previousStatus && (previousStatus === "administrator" || previousStatus === "member")) {
+  if (previousStatus && (previousStatus === "administrator" || previousStatus === "member")) {
     return;
   }
   console.log("bot added");
@@ -133,7 +133,7 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, chatTy
   return true;
 };
 
-export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string) => {
+export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string, threadId: number) => {
   const isAdmin = await isAdminOfChat(fromId, chatId);
 
   if (!isAdmin) {
@@ -144,8 +144,24 @@ export const enableTopicInGroup = async (fromId: number, chatId: number, message
     return await sendReply(chatId, messageId, escapeMarkdown(`Please, only use this command on a topic`, "*`[]()@/"), true);
   }
 
-  await addTopic(chatId, forumName, "", true);
+  await addTopic(chatId, threadId, forumName, "", true);
   return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
+};
+
+export const changeForumName = async (newForumName: string, threadId: number, chatId: number, fromId: number) => {
+  const forum = await getTopicByThreadId(chatId, threadId);
+
+  if (!forum) {
+    return;
+  }
+
+  const isAdmin = await isAdminOfChat(fromId, chatId);
+
+  if (!isAdmin) {
+    return;
+  }
+
+  await addTopic(chatId, threadId, newForumName, forum.github_repo, forum.enabled);
 };
 
 export const handleSlashCommand = async (
@@ -157,7 +173,8 @@ export const handleSlashCommand = async (
   username: string,
   url: URL,
   messageId: number,
-  forumName: string
+  forumName: string,
+  threadId: number
 ) => {
   if (!username && chatId) {
     await sendReply(chatId, messageId, escapeMarkdown(`Please, set a username to use this bot!\nSettings > Username`, "*`[]()@/"), true);
@@ -182,7 +199,7 @@ export const handleSlashCommand = async (
         break;
       case ENABLE_TOPIC:
       case `${ENABLE_TOPIC}@${botName}`:
-        await enableTopicInGroup(fromId, chatId, messageId, forumName);
+        await enableTopicInGroup(fromId, chatId, messageId, forumName, threadId);
         break;
       default:
         break;

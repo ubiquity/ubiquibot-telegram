@@ -8,7 +8,7 @@ import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
 import { getTopic, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
-import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
+import { changeForumName, getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
   cleanMessage,
@@ -246,6 +246,10 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 const onMessage = async (message: MessageType, url: URL) => {
   console.log(`Received message: ${message.text}`);
 
+  if (message.forum_topic_edited) {
+    await changeForumName(message.forum_topic_edited.name, message.message_thread_id, message.chat.id, message.from.id);
+  }
+
   if (!message.text) {
     console.log(`Skipping, no message attached`);
     return;
@@ -259,11 +263,12 @@ const onMessage = async (message: MessageType, url: URL) => {
   const username = message.from.username;
   const messageId = message.message_id;
   const forumName = message?.reply_to_message?.forum_topic_created?.name;
+  const threadId = message?.reply_to_message?.message_thread_id || message?.message_thread_id;
 
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
   }
 
   // Check if cooldown
