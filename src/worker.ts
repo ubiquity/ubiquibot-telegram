@@ -135,6 +135,7 @@ const unRegisterWebhook = async () => {
 
 const onBotInstall = async (event: MyChatQueryType) => {
   const status = event.new_chat_member.status;
+  const previousStatus = event.old_chat_member.status;
   const triggerUserName = event.new_chat_member.user.username;
   const chatId = event.chat.id;
   const fromId = event.from.id;
@@ -154,13 +155,13 @@ const onBotInstall = async (event: MyChatQueryType) => {
         await isBotRemoved(chatId, fromId);
         break;
       case "member":
-        await isBotAdded(chatId, fromId, groupName);
+        await isBotAdded(chatId, fromId, groupName, previousStatus);
         break;
       case "added":
-        await isBotAdded(chatId, fromId, groupName);
+        await isBotAdded(chatId, fromId, groupName, previousStatus);
         break;
       case "administrator":
-        await isBotAdded(chatId, fromId, groupName);
+        await isBotAdded(chatId, fromId, groupName, previousStatus);
         break;
       default:
         break;

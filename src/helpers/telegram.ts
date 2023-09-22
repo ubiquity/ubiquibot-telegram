@@ -67,7 +67,10 @@ export const getGroupDetails = async (chatId: number) => {
   }
 };
 
-export const isBotAdded = async (chatId: number, fromId: number, groupName: string) => {
+export const isBotAdded = async (chatId: number, fromId: number, groupName: string, previousStatus: string) => {
+  if(previousStatus && (previousStatus === "administrator" || previousStatus === "member")) {
+    return;
+  }
   console.log("bot added");
   await addTelegramBot(chatId, fromId, groupName);
   await replyMessage(chatId, "Bot successfully installed, please use the /start command in private chat to set it up");

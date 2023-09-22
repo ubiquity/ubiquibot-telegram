@@ -103,6 +103,12 @@ export type MyChatQueryType = {
       username: string;
     };
   };
+  old_chat_member: {
+    status: string;
+    user: {
+      username: string;
+    };
+  };
   chat: {
     id: number;
     title: string;
