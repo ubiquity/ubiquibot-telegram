@@ -141,7 +141,7 @@ export const enableTopicInGroup = async (fromId: number, chatId: number, message
   }
 
   if (!forumName) {
-    return await sendReply(chatId, messageId, escapeMarkdown(`Please, only use this command on a topic`, "*`[]()@/"), true);
+    return await sendReply(chatId, messageId, escapeMarkdown(`Chat already added, please use the /start command in private to set it up`, "*`[]()@/"), true);
   }
 
   await addTopic(chatId, threadId, forumName, "", true);
