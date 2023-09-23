@@ -162,7 +162,7 @@ export const getUserGithubId = async (github_id: string, groupId: number) => {
   return data[0].github_id;
 };
 
-export const addTopic = async (groupId: number, threadId: number, forumName: string, githubRepo: string, enabled: boolean) => {
+export const addForum = async (groupId: number, threadId: number, forumName: string, githubRepo: string, enabled: boolean) => {
   const { data: existingRecord } = await supabase
     .from("telegram_bot_forums")
     .select("id, github_repo")
@@ -207,11 +207,11 @@ export const addTopic = async (groupId: number, threadId: number, forumName: str
   }
 };
 
-export const getTopic = async (groupId: number, forumName: string) => {
+export const getForum = async (groupId: number, forumName: string) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
 
   if (error) {
-    console.error("Error getting topic:", error.message);
+    console.error("Error getting forum:", error.message);
     return null;
   }
 
@@ -222,11 +222,11 @@ export const getTopic = async (groupId: number, forumName: string) => {
   return data[0];
 };
 
-export const getTopicByThreadId = async (groupId: number, threadId: number) => {
+export const getForumByThreadId = async (groupId: number, threadId: number) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("thread_id", threadId).eq("group_id", groupId);
 
   if (error) {
-    console.error("Error getting topic:", error.message);
+    console.error("Error getting forum:", error.message);
     return null;
   }
 
@@ -237,11 +237,11 @@ export const getTopicByThreadId = async (groupId: number, threadId: number) => {
   return data[0];
 };
 
-export const getTopicById = async (topicId: number) => {
-  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", topicId);
+export const getForumById = async (forumId: number) => {
+  const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", forumId);
 
   if (error) {
-    console.error("Error getting topic:", error.message);
+    console.error("Error getting forum:", error.message);
     return null;
   }
 
@@ -252,11 +252,11 @@ export const getTopicById = async (topicId: number) => {
   return data[0];
 };
 
-export const getTopics = async (groupId: number) => {
+export const getForums = async (groupId: number) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId);
 
   if (error) {
-    console.error("Error getting topic:", error.message);
+    console.error("Error getting forum:", error.message);
     return null;
   }
 
@@ -267,11 +267,11 @@ export const getTopics = async (groupId: number) => {
   return data;
 };
 
-export const hasEnabledTopic = async (groupId: number) => {
+export const hasEnabledForum = async (groupId: number) => {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("enabled", true);
 
   if (error) {
-    console.error("Error getting topic:", error.message);
+    console.error("Error getting forum:", error.message);
     return null;
   }
 

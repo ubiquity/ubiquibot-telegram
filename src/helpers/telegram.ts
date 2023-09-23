@@ -1,8 +1,8 @@
 import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
-import { ForumTopicEditedType, KeyboardDataType } from "../types/Basic";
+import { KeyboardDataType } from "../types/Basic";
 import { createGithubTelegramLink } from "./github";
 import { hasUserSession, getUserSession, deleteUserSession } from "./session";
-import { addTelegramBot, addTopic, getTelegramBotByFromId, getTopicByThreadId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
+import { addTelegramBot, addForum, getTelegramBotByFromId, getForumByThreadId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
 import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
@@ -133,7 +133,7 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, chatTy
   return true;
 };
 
-export const enableTopicInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string, threadId: number) => {
+export const enableForumInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string, threadId: number) => {
   const isAdmin = await isAdminOfChat(fromId, chatId);
 
   if (!isAdmin) {
@@ -144,12 +144,12 @@ export const enableTopicInGroup = async (fromId: number, chatId: number, message
     return await sendReply(chatId, messageId, escapeMarkdown(`Chat already added, please use the /start command in private to set it up`, "*`[]()@/"), true);
   }
 
-  await addTopic(chatId, threadId, forumName, "", true);
+  await addForum(chatId, threadId, forumName, "", true);
   return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
 };
 
 export const changeForumName = async (newForumName: string, threadId: number, chatId: number, fromId: number) => {
-  const forum = await getTopicByThreadId(chatId, threadId);
+  const forum = await getForumByThreadId(chatId, threadId);
 
   if (!forum) {
     return;
@@ -161,7 +161,7 @@ export const changeForumName = async (newForumName: string, threadId: number, ch
     return;
   }
 
-  await addTopic(chatId, threadId, newForumName, forum.github_repo, forum.enabled);
+  await addForum(chatId, threadId, newForumName, forum.github_repo, forum.enabled);
 };
 
 export const handleSlashCommand = async (
@@ -199,7 +199,7 @@ export const handleSlashCommand = async (
         break;
       case ENABLE_TOPIC:
       case `${ENABLE_TOPIC}@${botName}`:
-        await enableTopicInGroup(fromId, chatId, messageId, forumName, threadId);
+        await enableForumInGroup(fromId, chatId, messageId, forumName, threadId);
         break;
       default:
         break;

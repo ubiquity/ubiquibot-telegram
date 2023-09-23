@@ -7,7 +7,7 @@ import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
-import { getTopic, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
+import { getForum, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
 import { changeForumName, getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
@@ -298,7 +298,7 @@ const onMessage = async (message: MessageType, url: URL) => {
   const { issueTitle, timeEstimate } = GPT3Info;
 
   if (forumName) {
-    const res = await getTopic(chatId, forumName);
+    const res = await getForum(chatId, forumName);
     if (!res || !res.enabled) {
       console.log(`Skipping, topic not enabled`);
       return sendReply(chatId, messageId, escapeMarkdown(`Topic not enabled, please use the ${ENABLE_TOPIC} command to enable`, "*`[]()@/"), true);

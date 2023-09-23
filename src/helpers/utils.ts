@@ -1,5 +1,5 @@
 import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/Basic";
-import { getRepoByGroupId, getTopic } from "./supabase";
+import { getRepoByGroupId, getForum } from "./supabase";
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
@@ -74,7 +74,7 @@ export const removeNewlinesAndExtractValues = (text: string) => {
 export const getRepoData = async (groupId: number, forumName: string) => {
   let data;
   if (forumName) {
-    const res = await getTopic(groupId, forumName);
+    const res = await getForum(groupId, forumName);
     data = res?.github_repo;
   } else {
     data = await getRepoByGroupId(groupId);
