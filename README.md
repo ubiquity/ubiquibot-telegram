@@ -24,7 +24,7 @@ yarn
 ```jsonc
 {
   "telegram_bot_token": "", // Telegram Bot Token, use @BotFather to create a bot an input the token here
-  "webhook": "/endpoint", // Path for telegram cloudflare communication (default preffered)
+  "webhook": "/endpoint", // Path for telegram cloudflare communication (read more https://github.com/ubiquity/ubiquibot-telegram/commit/0bdf9a5812d8d33f04b9f4a0eb17bba50fa57b4a#r127964170)
   "secret": "QUEVEDO_BZRP_Random_String_52", // Random string for secure communication
   "openai_api_key": "", // OpenAI ChatGPT API Key (Valid)
   "github_pat": "", // Github Personal Access Token (Empty if you are using a bot)
