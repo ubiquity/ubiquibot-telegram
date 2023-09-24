@@ -7,8 +7,8 @@ import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { OAuthHandler } from "./helpers/oauth-login";
-import { getTopic, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
-import { getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
+import { getForum, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
+import { changeForumName, getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
   cleanMessage,
@@ -138,6 +138,7 @@ const unRegisterWebhook = async () => {
 
 const onBotInstall = async (event: MyChatQueryType) => {
   const status = event.new_chat_member.status;
+  const previousStatus = event.old_chat_member.status;
   const triggerUserName = event.new_chat_member.user.username;
   const chatId = event.chat.id;
   const fromId = event.from.id;
@@ -157,13 +158,13 @@ const onBotInstall = async (event: MyChatQueryType) => {
         await isBotRemoved(chatId, fromId);
         break;
       case "member":
-        await isBotAdded(chatId, fromId, groupName);
+        await isBotAdded(chatId, fromId, groupName, previousStatus);
         break;
       case "added":
-        await isBotAdded(chatId, fromId, groupName);
+        await isBotAdded(chatId, fromId, groupName, previousStatus);
         break;
       case "administrator":
-        await isBotAdded(chatId, fromId, groupName);
+        await isBotAdded(chatId, fromId, groupName, previousStatus);
         break;
       default:
         break;
@@ -248,6 +249,10 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 const onMessage = async (message: MessageType, url: URL) => {
   console.log(`Received message: ${message.text}`);
 
+  if (message.forum_topic_edited) {
+    await changeForumName(message.forum_topic_edited.name, message.message_thread_id, message.chat.id, message.from.id);
+  }
+
   if (!message.text) {
     console.log(`Skipping, no message attached`);
     return;
@@ -261,11 +266,12 @@ const onMessage = async (message: MessageType, url: URL) => {
   const username = message.from.username;
   const messageId = message.message_id;
   const forumName = message?.reply_to_message?.forum_topic_created?.name;
+  const threadId = message?.reply_to_message?.message_thread_id || message?.message_thread_id;
 
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
   }
 
   // Check if cooldown
@@ -295,7 +301,7 @@ const onMessage = async (message: MessageType, url: URL) => {
   const { issueTitle, timeEstimate } = GPT3Info;
 
   if (forumName) {
-    const res = await getTopic(chatId, forumName);
+    const res = await getForum(chatId, forumName);
     if (!res || !res.enabled) {
       console.log(`Skipping, topic not enabled`);
       return sendReply(chatId, messageId, escapeMarkdown(`Topic not enabled, please use the ${ENABLE_TOPIC} command to enable`, "*`[]()@/"), true);

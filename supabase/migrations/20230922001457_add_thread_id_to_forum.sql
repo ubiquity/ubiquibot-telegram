@@ -1,0 +1,1 @@
+ALTER TABLE telegram_bot_forums ADD COLUMN thread_id numeric;

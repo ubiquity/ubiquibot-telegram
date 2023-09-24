@@ -44,6 +44,11 @@ export type MessageType = {
     forum_topic_created: {
       name: string;
     };
+    message_thread_id: number;
+  };
+  message_thread_id: number;
+  forum_topic_edited: {
+    name: string;
   };
 };
 
@@ -57,6 +62,10 @@ export type ChannelMessageType = {
   from: {
     id: number;
   };
+};
+
+export type ForumTopicEditedType = {
+  name: string;
 };
 
 export type CallbackQueryType = {
@@ -103,6 +112,12 @@ export type MyChatQueryType = {
       username: string;
     };
   };
+  old_chat_member: {
+    status: string;
+    user: {
+      username: string;
+    };
+  };
   chat: {
     id: number;
     title: string;
@@ -117,6 +132,7 @@ export type UpdateType = {
   callback_query: CallbackQueryType;
   my_chat_member: MyChatQueryType;
   channel_post: ChannelMessageType;
+  forum_topic_edited: ForumTopicEditedType;
 };
 
 export interface FetchEventType extends Event {
