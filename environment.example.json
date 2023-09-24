@@ -9,5 +9,6 @@
   "github_oauth_client_secret": "",
   "github_installation_token": "",
   "supabase_key": "",
-  "supabase_url": ""
+  "supabase_url": "",
+  "log_webhook_secret": ""
 }
