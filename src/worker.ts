@@ -200,7 +200,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
     if (title === null || timeEstimate === null) {
       console.log(`Task title is null`);
       return;
-    } 
+    }
 
     console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
 
