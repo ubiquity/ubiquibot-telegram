@@ -22,6 +22,7 @@ import {
   removeTag,
   slashCommandCheck,
 } from "./helpers/utils";
+import { sendLogsToGroup } from "./helpers/webhook";
 import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/Basic";
 
 /**
@@ -40,6 +41,8 @@ addEventListener("fetch", async (event: Event) => {
     await ev.respondWith(unRegisterWebhook());
   } else if (url.pathname === "/setCommands") {
     await ev.respondWith(setCommands());
+  } else if (url.pathname === "/sendLogs") {
+    await ev.respondWith(sendLogsToGroup(ev as ExtendableEventType));
   } else {
     await ev.respondWith(new Response("No handler for this request"));
   }
