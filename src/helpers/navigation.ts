@@ -2,7 +2,7 @@ import { ENABLE_TOPIC } from "../constants";
 import { CallbackQueryType, KeyboardDataType } from "../types/Basic";
 
 import { setUserSession } from "./session";
-import { getTopicById, getTopics, hasEnabledTopic } from "./supabase";
+import { getForumById, getForums, hasEnabledForum } from "./supabase";
 import { getGroupDetails, listGroupsWithBot } from "./telegram";
 import { editBotMessage, replyMessage } from "./triggers";
 import { parseCallData } from "./utils";
@@ -41,20 +41,20 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   switch (item.key) {
     case "group":
       const { name, is_forum } = await getGroupDetails(item.value as number);
-      const hasTopics = await hasEnabledTopic(item.value as number);
+      const hasForums = await hasEnabledForum(item.value as number);
 
-      if (is_forum && !hasTopics) {
+      if (is_forum && !hasForums) {
         return await editBotMessage(
           chatId,
           messageId,
-          `This group is a forum. Please use the ${ENABLE_TOPIC} command on the forums you want to work with to see them here.`
+          `This group has topics enabled. Please use the ${ENABLE_TOPIC} command on the topics you want to work with to see them here.`
         );
-      } else if (is_forum && hasTopics) {
+      } else if (is_forum && hasForums) {
         // list topics
-        const topicList = await getTopics(item.value as number);
+        const forumList = await getForums(item.value as number);
 
-        if (topicList && topicList.length > 0) {
-          const keyboardRes: KeyboardDataType[] = topicList.map((e) => ({
+        if (forumList && forumList.length > 0) {
+          const keyboardRes: KeyboardDataType[] = forumList.map((e) => ({
             text: e.forum_name,
             callback_data: `${callbackQuery.data},forum:${e.id}`,
           }));
@@ -87,10 +87,10 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
       break;
     case "forum":
       if (item.value.toString().startsWith("-")) {
-        return await editBotMessage(chatId, messageId, `Here is your forum: *General* \nWhat do you want to do?`, keyboardMainMenuRes);
+        return await editBotMessage(chatId, messageId, `Here is your topic: *General* \nWhat do you want to do?`, keyboardMainMenuRes);
       }
-      const forum = await getTopicById(item.value as number);
-      await editBotMessage(chatId, messageId, `Here is your forum: *${forum.forum_name}* \nWhat do you want to do?`, keyboardMainMenuRes);
+      const forum = await getForumById(item.value as number);
+      await editBotMessage(chatId, messageId, `Here is your topic: *${forum.forum_name}* \nWhat do you want to do?`, keyboardMainMenuRes);
       break;
     default:
       console.log(`Unknown key: ${item.key}`);
