@@ -10,6 +10,7 @@ declare global {
   const GITHUB_OAUTH_CLIENT_SECRET: string;
   const GITHUB_INSTALLATION_TOKEN: string;
   const TELEGRAM_BOT_TOKEN: string;
+  const LOG_WEBHOOK_SECRET: string;
 }
 
 export {};

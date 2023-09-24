@@ -47,6 +47,7 @@ jobs:
           DEFAULT_PRIORITY: "Priority: 0 (Normal)"
           GITHUB_OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
           GITHUB_OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+          LOG_WEBHOOK_SECRET: ${{ secrets.LOG_WEBHOOK_SECRET }}
           GITHUB_INSTALLATION_TOKEN: ${{ steps.get_installation_token.outputs.token }}
         run: |
           # Populate Cloudflare Worker secrets
@@ -57,6 +58,7 @@ jobs:
           echo "$DEFAULT_PRIORITY" | wrangler secret put DEFAULT_PRIORITY
           echo "$GITHUB_OAUTH_CLIENT_ID" | wrangler secret put GITHUB_OAUTH_CLIENT_ID
           echo "$GITHUB_OAUTH_CLIENT_SECRET" | wrangler secret put GITHUB_OAUTH_CLIENT_SECRET
+          echo "$LOG_WEBHOOK_SECRET" | wrangler secret put LOG_WEBHOOK_SECRET
           echo "$GITHUB_INSTALLATION_TOKEN" | wrangler secret put GITHUB_INSTALLATION_TOKEN
           echo "$SUPABASE_URL" | wrangler secret put SUPABASE_URL
           echo "$SUPABASE_KEY" | wrangler secret put SUPABASE_KEY
