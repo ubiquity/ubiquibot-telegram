@@ -1,1 +1,1 @@
-ALTER TABLE telegram_bot_forums ADD COLUMN thread_id numeric;
+ALTER TABLE telegram_bot_forums ADD COLUMN IF NOT EXISTS thread_id numeric;
