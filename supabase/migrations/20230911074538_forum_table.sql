@@ -1,4 +1,4 @@
-CREATE TABLE telegram_bot_forums (
+CREATE TABLE IF NOT EXISTS telegram_bot_forums (
     id SERIAL PRIMARY KEY,
     group_id bigint NOT NULL,
     forum_name VARCHAR(255) NOT NULL,

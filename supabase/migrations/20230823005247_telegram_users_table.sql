@@ -1,4 +1,4 @@
-CREATE TABLE tele_git_users_maps (
+CREATE TABLE IF NOT EXISTS tele_git_users_maps (
   id SERIAL PRIMARY KEY,
   user_id TEXT,
   group_id TEXT,
