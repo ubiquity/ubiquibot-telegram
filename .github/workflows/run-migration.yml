@@ -23,7 +23,7 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/development'
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ github.ref == 'refs/heads/development' && secrets.SUPABASE_PROJECT_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ github.ref == 'refs/heads/development' && secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ github.ref == 'refs/heads/development' && secrets.SUPABASE_DB_PASSWORD }}
       PROJECT_ID: ${{ github.ref == 'refs/heads/development' && secrets.SUPABASE_PROJECT_ID }}
 
