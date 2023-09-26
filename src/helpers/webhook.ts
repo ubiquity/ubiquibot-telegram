@@ -1,6 +1,7 @@
 import { ExtendableEventType } from "../types/Basic";
 import { JWTResponse, validateJWT } from "./jwt";
 import { replyMessage, sendReply } from "./triggers";
+import { escapeMarkdown } from "./utils";
 
 export const sendLogsToGroup = async (ev: ExtendableEventType) => {
   const headers = ev.request.headers;
@@ -19,7 +20,7 @@ export const sendLogsToGroup = async (ev: ExtendableEventType) => {
     const { group, topic, msg } = payload as JWTResponse;
 
     if(topic) {
-        await sendReply(group, topic, msg, true)
+        await sendReply(group, topic, escapeMarkdown(msg, "*`[]()@"), true)
     } else {
         await replyMessage(group, msg)
     }
