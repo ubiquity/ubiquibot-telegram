@@ -268,10 +268,13 @@ const onMessage = async (message: MessageType, url: URL) => {
   const forumName = message?.reply_to_message?.forum_topic_created?.name;
   const threadId = message?.reply_to_message?.message_thread_id || message?.message_thread_id;
 
+  // get bot's name
+  const botName = await getBotUsername();
+
   if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId, botName);
   } else if (isSlash) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
+    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId, botName);
   }
 
   // Check if cooldown
@@ -280,6 +283,15 @@ const onMessage = async (message: MessageType, url: URL) => {
   if (!isReady) {
     console.log(`Skipping, bot on cooldown`);
     return;
+  }
+
+  // remove isMentioned if-else block to enable bot response on all messages
+  if (!message.text.endsWith(`@${botName}`)) {
+    console.log(`Skipping, @${botName} was not mentioned`);
+    return;
+  } else {
+    // remove @botName from message
+    message.text = message.text.replace(`@${botName}`, "");
   }
 
   const msgText = cleanMessage(message.text);
