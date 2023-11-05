@@ -95,8 +95,8 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
       : await replyMessage(chatId, "Choose a group from the list below:", keyboardRes);
   } else {
     messageId
-      ? await editBotMessage(chatId, messageId, "You do not have the bot installed on any of your groups.")
-      : await replyMessage(chatId, "You do not have the bot installed on any of your groups.");
+      ? await editBotMessage(chatId, messageId, "You do not have the bot installed on any of your groups or supabase is not correctly configured.")
+      : await replyMessage(chatId, "You do not have the bot installed on any of your groups or supabase is not correctly configured.");
   }
 };
 
