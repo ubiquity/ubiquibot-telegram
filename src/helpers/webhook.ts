@@ -15,14 +15,14 @@ export const sendLogsToGroup = async (ev: ExtendableEventType) => {
     });
   }
 
-  try{
+  try {
     const { payload } = await validateJWT(jwtAuth);
     const { group, topic, msg } = payload as JWTResponse;
 
-    if(topic) {
-        await sendReply(group, topic, escapeMarkdown(msg, "*`[]()@"), true)
+    if (topic) {
+      await sendReply(group, topic, escapeMarkdown(msg, "*`[]()@"), true);
     } else {
-        await replyMessage(group, msg)
+      await replyMessage(group, msg);
     }
   } catch (e) {
     console.error("JWT validation error:", e);
