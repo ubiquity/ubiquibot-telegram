@@ -214,12 +214,13 @@ export const handleSlashCommand = async (
     if (await hasUserSession(chatId)) {
       const userContext = await getUserSession(chatId);
       switch (userContext.v) {
-        case "link_github":
+        case "link_github": {
           const saved = await handleSetGithubRepo(fromId, userContext.c, userContext.k, text);
           if (saved) {
             await deleteUserSession(chatId);
           }
           break;
+        }
         default:
           console.log("User replied:", text);
           break;

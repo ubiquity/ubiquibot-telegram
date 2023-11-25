@@ -124,7 +124,7 @@ export const bindGithubToTelegramUser = async (groupId: number, username: string
   if (existingRecord) {
     const { data, error } = await supabase.from("tele_git_users_maps").upsert([
       {
-        id: existingRecord!.id,
+        id: existingRecord.id,
         ...dataObj,
       },
     ]);
@@ -183,9 +183,9 @@ export const addForum = async (groupId: number, threadId: number, forumName: str
   if (existingRecord) {
     const { data, error } = await supabase.from("telegram_bot_forums").upsert([
       {
-        id: existingRecord!.id,
+        id: existingRecord.id,
         ...dataObj,
-        github_repo: existingRecord!.github_repo,
+        github_repo: existingRecord.github_repo,
       },
     ]);
 
