@@ -102,12 +102,10 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
 
 export const handleSetGithubRepo = async (fromId: number, chatId: number, chatType: string, githubUrlOrRepo: string) => {
   // Check if the input contains "/issues" and remove it if present
-  const githubUrlWithoutIssues = githubUrlOrRepo.replace(/\/issues$/, '');
+  const githubUrlWithoutIssues = githubUrlOrRepo.replace(/\/issues$/, "");
 
   // If the input does not start with "https://github.com/", assume it's a repo shorthand
-  const githubUrl = githubUrlWithoutIssues.startsWith("https://github.com/")
-    ? githubUrlWithoutIssues
-    : `https://github.com/${githubUrlWithoutIssues}`;
+  const githubUrl = githubUrlWithoutIssues.startsWith("https://github.com/") ? githubUrlWithoutIssues : `https://github.com/${githubUrlWithoutIssues}`;
 
   const githubUrlRegex = /^(https?:\/\/)?(www\.)?github\.com\/([\w-]+)\/([\w.-]+)(\/.*)?$/i;
   const match = githubUrl.match(githubUrlRegex);
