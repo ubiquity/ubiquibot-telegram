@@ -23,6 +23,8 @@ export const handleFirstMenu = async (value: string, chatId: number, messageId: 
  * https://core.telegram.org/bots/api#message
  */
 export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) => {
+  type ActionKeys = "group" | "menu" | "group_list" | "forum";
+
   const parsedData = parseCallData(callbackQuery.data);
   const chatId = callbackQuery.message.chat.id;
   const messageId = callbackQuery.message.message_id;
@@ -38,11 +40,11 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   ];
 
   // Use the item.key and item.value to generate menu items
-  switch (item.key) {
-    case "group":
-      const { name, is_forum } = await getGroupDetails(item.value as number);
-      const hasForums = await hasEnabledForum(item.value as number);
-
+  const actions: { [K in ActionKeys]: () => Promise<void> } = {
+    async group() {
+      const { name, is_forum } = await getGroupDetails(Number(item.value));
+      const hasForums = await hasEnabledForum(Number(item.value));
+      // rest of your code...
       if (is_forum && !hasForums) {
         return await editBotMessage(
           chatId,
@@ -51,7 +53,7 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
         );
       } else if (is_forum && hasForums) {
         // list topics
-        const forumList = await getForums(item.value as number);
+        const forumList = await getForums(Number(item.value));
 
         if (forumList && forumList.length > 0) {
           const keyboardRes: KeyboardDataType[] = forumList.map((e) => ({
@@ -62,7 +64,7 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
           // add general topic to list
           keyboardRes.unshift({
             text: "General",
-            callback_data: `${callbackQuery.data},forum:${item.value as number}`,
+            callback_data: `${callbackQuery.data},forum:${item.value}`,
           });
 
           return messageId
@@ -73,27 +75,30 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
       }
 
       await editBotMessage(chatId, messageId, `Here is your group: *${name}* \nWhat do you want to do?`, keyboardMainMenuRes);
-      break;
-    case "menu":
+    },
+    async menu() {
       // fetch all keys and get the one with key as forum, if none, then find the one with group
-      const groupData = parsedData.find((e) => e.key === "group") as { key: string; value: string };
-      const forumData = parsedData.find((e) => e.key === "forum") as { key: string; value: string };
+      const groupData = parsedData.find((e) => e.key === "group") as { key: ActionKeys; value: string };
+      const forumData = parsedData.find((e) => e.key === "forum") as { key: ActionKeys; value: string };
 
       const data = forumData ? forumData : groupData;
       await handleFirstMenu(item.value as string, chatId, messageId, data.key, data.value as string);
-      break;
-    case "group_list":
+    },
+    async group_list() {
       await listGroupsWithBot(fromId, chatId, messageId);
-      break;
-    case "forum":
+    },
+    async forum() {
       if (item.value.toString().startsWith("-")) {
         return await editBotMessage(chatId, messageId, `Here is your topic: *General* \nWhat do you want to do?`, keyboardMainMenuRes);
       }
-      const forum = await getForumById(item.value as number);
+      const forum = await getForumById(Number(item.value));
       await editBotMessage(chatId, messageId, `Here is your topic: *${forum.forum_name}* \nWhat do you want to do?`, keyboardMainMenuRes);
-      break;
-    default:
-      console.log(`Unknown key: ${item.key}`);
-      break;
+    },
+  };
+
+  if (actions[item.key as ActionKeys]) {
+    await actions[item.key as ActionKeys]();
+  } else {
+    console.log(`Unknown key: ${item.key}`);
   }
 };

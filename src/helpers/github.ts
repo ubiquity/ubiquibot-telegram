@@ -106,7 +106,7 @@ export const createIssue = async (
     let titleCapitalized = capitalizeWords(issueTitle);
 
     // remove punctuation at the end of the titleCapitalized if it exists
-    if (titleCapitalized[titleCapitalized.length - 1].match(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g)) {
+    if (titleCapitalized[titleCapitalized.length - 1].match(/[.,/#!$%^&*;:{}=\-_`~()]/g)) {
       titleCapitalized = titleCapitalized.slice(0, -1);
     }
 
