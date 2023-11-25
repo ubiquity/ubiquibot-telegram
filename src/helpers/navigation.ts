@@ -7,7 +7,7 @@ import { getGroupDetails, listGroupsWithBot } from "./telegram";
 import { editBotMessage, replyMessage } from "./triggers";
 import { parseCallData } from "./utils";
 
-export const handleFirstMenu = async (value: string, chatId: number, messageId: number, groupKey: string, groupData: string) => {
+export async function handleFirstMenu(value: string, chatId: number, messageId: number, groupKey: string, groupData: string) {
   switch (value) {
     case "link_github":
       await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this ${groupKey}.`);
@@ -16,13 +16,13 @@ export const handleFirstMenu = async (value: string, chatId: number, messageId: 
     default:
       break;
   }
-};
+}
 
 /**
  * Handle incoming callback_query (inline button press)
  * https://core.telegram.org/bots/api#message
  */
-export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) => {
+export async function onPrivateCallbackQuery(callbackQuery: CallbackQueryType) {
   type ActionKeys = "group" | "menu" | "group_list" | "forum";
 
   const parsedData = parseCallData(callbackQuery.data);
@@ -40,7 +40,9 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   ];
 
   // Use the item.key and item.value to generate menu items
-  const actions: { [K in ActionKeys]: () => Promise<void> } = {
+  const actions: {
+    [K in ActionKeys]: () => Promise<void>;
+  } = {
     async group() {
       const { name, is_forum } = await getGroupDetails(Number(item.value));
       const hasForums = await hasEnabledForum(Number(item.value));
@@ -78,8 +80,8 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
     },
     async menu() {
       // fetch all keys and get the one with key as forum, if none, then find the one with group
-      const groupData = parsedData.find((e) => e.key === "group") as { key: ActionKeys; value: string };
-      const forumData = parsedData.find((e) => e.key === "forum") as { key: ActionKeys; value: string };
+      const groupData = parsedData.find((e) => e.key === "group") as { key: ActionKeys; value: string; };
+      const forumData = parsedData.find((e) => e.key === "forum") as { key: ActionKeys; value: string; };
 
       const data = forumData ? forumData : groupData;
       await handleFirstMenu(item.value as string, chatId, messageId, data.key, data.value as string);
@@ -101,4 +103,4 @@ export const onPrivateCallbackQuery = async (callbackQuery: CallbackQueryType) =
   } else {
     console.log(`Unknown key: ${item.key}`);
   }
-};
+}
