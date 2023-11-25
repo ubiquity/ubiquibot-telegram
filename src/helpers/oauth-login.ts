@@ -8,7 +8,7 @@ import { replyMessage } from "./triggers";
 // Define the scope for requesting access to public data and repo issues
 const scope = "public_repo";
 
-export const getUserData = async (token: string, telegramId: number, username: string, groupId: number, headers: HeadersInit) => {
+export async function getUserData(token: string, telegramId: number, username: string, groupId: number, headers: HeadersInit) {
   const getUserResponse = await fetch("https://api.github.com/user", {
     headers: {
       accept: "application/vnd.github.v3+json",
@@ -35,9 +35,9 @@ export const getUserData = async (token: string, telegramId: number, username: s
       status: 400,
     });
   }
-};
+}
 
-export const oAuthHandler = async (event: ExtendableEventType, url: URL) => {
+export async function oAuthHandler(event: ExtendableEventType, url: URL) {
   // handle CORS pre-flight request
   if (event.request.method === "OPTIONS") {
     return new Response(null, {
@@ -105,4 +105,4 @@ export const oAuthHandler = async (event: ExtendableEventType, url: URL) => {
   } finally {
     await deleteUserSession(telegramId as string);
   }
-};
+}

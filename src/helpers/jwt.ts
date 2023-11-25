@@ -8,7 +8,7 @@ export interface JWTResponse {
 }
 
 // validate and decode a JWT
-export const validateJWT = async (token: string) => {
+export async function validateJWT(token: string) {
   try {
     const isDecoded = await jwt.verify(token, LOG_WEBHOOK_SECRET);
 
@@ -26,4 +26,4 @@ export const validateJWT = async (token: string) => {
   } catch (error) {
     throw new Error("Invalid JWT");
   }
-};
+}
