@@ -4,20 +4,20 @@ import { createKeyboardRow, escapeMarkdown } from "./utils";
 /**
  * Return url to telegram api, optionally with parameters added
  */
-export const apiUrl = (methodName: string, params: ApiParam | null = null) => {
+export function apiUrl(methodName: string, params: ApiParam | null = null) {
   let query = "";
   if (params !== null) {
     query = "?" + new URLSearchParams(params as string).toString();
   }
   return `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${methodName}${query}`;
-};
+}
 
 /**
  * Answer callback query (inline button press)
  * This stops the loading indicator on the button and optionally shows a message
  * https://core.telegram.org/bots/api#sendmessage
  */
-export const answerCallbackQuery = async (callbackQueryId: number, text: string | null) => {
+export async function answerCallbackQuery(callbackQueryId: number, text: string | null) {
   const data: DataType = {
     callback_query_id: callbackQueryId,
   };
@@ -25,7 +25,7 @@ export const answerCallbackQuery = async (callbackQueryId: number, text: string 
     data.text = text;
   }
   return (await fetch(apiUrl("answerCallbackQuery", data))).json();
-};
+}
 
 /**
  * Send text message formatted with MarkdownV2-style
@@ -34,7 +34,7 @@ export const answerCallbackQuery = async (callbackQueryId: number, text: string 
  * messages will not be sent. See escapeMarkdown()
  * https://core.telegram.org/bots/api#sendmessage
  */
-export const sendReply = async (chatId: number, messageId: number, text: string, errored = false) => {
+export async function sendReply(chatId: number, messageId: number, text: string, errored = false) {
   return (
     await fetch(
       apiUrl("sendMessage", {
@@ -61,9 +61,9 @@ export const sendReply = async (chatId: number, messageId: number, text: string,
       })
     )
   ).json();
-};
+}
 
-export const replyMessage = async (chatId: number, text: string, keyboardValues: KeyboardDataType[] = []) => {
+export async function replyMessage(chatId: number, text: string, keyboardValues: KeyboardDataType[] = []) {
   const keyboardValuesRow = createKeyboardRow(keyboardValues);
   return (
     await fetch(
@@ -77,9 +77,9 @@ export const replyMessage = async (chatId: number, text: string, keyboardValues:
       })
     )
   ).json();
-};
+}
 
-export const editBotMessage = async (chatId: number, messageId: number, newText: string, keyboardValues: KeyboardDataType[] = []) => {
+export async function editBotMessage(chatId: number, messageId: number, newText: string, keyboardValues: KeyboardDataType[] = []) {
   const keyboardValuesRow = createKeyboardRow(keyboardValues);
   try {
     const response = await fetch(
@@ -98,9 +98,9 @@ export const editBotMessage = async (chatId: number, messageId: number, newText:
     console.error("Error editing message:", error);
     return null;
   }
-};
+}
 
-export const deleteBotMessage = async (chatId: number, messageId: number) => {
+export async function deleteBotMessage(chatId: number, messageId: number) {
   try {
     const response = await fetch(
       apiUrl("deleteMessage", {
@@ -113,7 +113,7 @@ export const deleteBotMessage = async (chatId: number, messageId: number) => {
     console.error("Error deleting message:", error);
     return null;
   }
-};
+}
 
 export default {
   deleteBotMessage,

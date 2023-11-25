@@ -12,46 +12,46 @@ const cooldownInterval = 60000; // Example: 1 minute cooldown
  * if `except` is provided, it should be a string of characters to not escape
  * https://core.telegram.org/bots/api#markdownv2-style
  */
-export const escapeMarkdown = (str: string, except = "") => {
+export function escapeMarkdown(str: string, except = "") {
   const all = "_*[]()~`>#+-=|{}.!\\".split("").filter((c) => !except.includes(c));
   const regExSpecial = "^$*+?.()|{}[]\\";
   const regEx = new RegExp("[" + all.map((c) => (regExSpecial.includes(c) ? "\\" + c : c)).join("") + "]", "gim");
   return str.replace(regEx, "\\$&");
-};
+}
 
-export const capitalizeWords = (inputString: string) => {
+export function capitalizeWords(inputString: string) {
   return inputString
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-};
+}
 
-export const extractNumberWithoutPrefix = (text: string) => {
+export function extractNumberWithoutPrefix(text: string) {
   const numberWithoutPrefix = text.replace(/^(-)?\d{3}/, "");
   return numberWithoutPrefix.length === 10 ? numberWithoutPrefix : null;
-};
+}
 
-export const cleanMessage = (text: string) => {
+export function cleanMessage(text: string) {
   // Remove all occurrences of @tag
   const cleanedText = text.replace(/@\w+/g, "");
 
   // Remove all occurrences of links (http and https)
   return cleanedText.replace(/(https?:\/\/[^\s]+)/g, "");
-};
+}
 
-export const removeTag = (text: string) => {
+export function removeTag(text: string) {
   // Remove all occurrences of @tag
   const cleanedText = text.replace(/@\w+/g, "").trim();
   return cleanedText;
-};
+}
 
-export const extractTag = (text: string) => {
+export function extractTag(text: string) {
   const regex = /@(\w+)/;
   const match = regex.exec(text);
   return match ? match[1] : null;
-};
+}
 
-export const removeNewlinesAndExtractValues = (text: string) => {
+export function removeNewlinesAndExtractValues(text: string) {
   // Remove all occurrences of '\n'
   const textWithoutNewlines = text.replace(/\n/g, "");
 
@@ -66,12 +66,12 @@ export const removeNewlinesAndExtractValues = (text: string) => {
   const timeEstimate = timeEstimateMatch ? timeEstimateMatch[1].trim() : null;
 
   return { issueTitle, timeEstimate };
-};
+}
 
 /**
  * Get repo data from mapping
  */
-export const getRepoData = async (groupId: number, forumName: string) => {
+export async function getRepoData(groupId: number, forumName: string) {
   let data;
   if (forumName) {
     const res = await getForum(groupId, forumName);
@@ -92,19 +92,19 @@ export const getRepoData = async (groupId: number, forumName: string) => {
     orgName: null,
     repoName: null,
   };
-};
+}
 
-export const generateMessageLink = (messageId: number, groupId: number) => {
+export function generateMessageLink(messageId: number, groupId: number) {
   return `https://t.me/c/${extractNumberWithoutPrefix(groupId?.toString())}/${messageId?.toString()}`;
-};
+}
 
-export const generateGitHubIssueBody = (interceptedMessage: string, telegramMessageLink: string) => {
+export function generateGitHubIssueBody(interceptedMessage: string, telegramMessageLink: string) {
   const quotedMessage = `${interceptedMessage}\n\n`;
   const footer = `###### [ **[ View on Telegram ]** ](${telegramMessageLink})`;
   return `${quotedMessage}${footer}`;
-};
+}
 
-export const extractTaskInfo = (text: string): TaskInfoType => {
+export function extractTaskInfo(text: string): TaskInfoType {
   const regex = /"(.*?)" on (.*?)\/(.*?) with time estimate (.+?)$/;
   const match = text.match(regex);
   console.log(match);
@@ -125,15 +125,15 @@ export const extractTaskInfo = (text: string): TaskInfoType => {
       timeEstimate: null,
     };
   }
-};
+}
 
 // Function to check if text begins with a slash
-export const slashCommandCheck = (text: string) => {
+export function slashCommandCheck(text: string) {
   return text.startsWith("/");
-};
+}
 
 // Function to extract the command and extra text
-export const extractSlashCommand = (text: string) => {
+export function extractSlashCommand(text: string) {
   // Remove leading and trailing spaces
   const trimmedText = text.trim();
 
@@ -150,19 +150,19 @@ export const extractSlashCommand = (text: string) => {
     command: command,
     extraText: extraText,
   };
-};
+}
 
 // Cooldown function that checks if the cooldown period has passed
-export const isCooldownReady = () => {
+export function isCooldownReady() {
   const currentTime = Date.now();
   return currentTime - lastAnalysisTimestamp >= cooldownInterval;
-};
+}
 
-export const setLastAnalysisTimestamp = (timestamp: number) => {
+export function setLastAnalysisTimestamp(timestamp: number) {
   lastAnalysisTimestamp = timestamp;
-};
+}
 
-export const parseCallData = (callData: string): ParsedDataType[] => {
+export function parseCallData(callData: string): ParsedDataType[] {
   const parts = callData.split(","); // Split by comma
   const result = [];
 
@@ -172,10 +172,10 @@ export const parseCallData = (callData: string): ParsedDataType[] => {
   }
 
   return result;
-};
+}
 
 // divide keyboardValues into chunks of 2
-export const createKeyboardRow = (keyboardValues: KeyboardDataType[]) => {
+export function createKeyboardRow(keyboardValues: KeyboardDataType[]) {
   const res = keyboardValues.reduce((acc: KeyboardDataType[][], cur, i) => {
     const index = Math.floor(i / 2);
     if (!acc[index]) {
@@ -186,12 +186,15 @@ export const createKeyboardRow = (keyboardValues: KeyboardDataType[]) => {
   }, []);
 
   return res;
-};
+}
 
-export const getLastAnalysisTimestamp = () => lastAnalysisTimestamp;
+export function getLastAnalysisTimestamp() {
+  return lastAnalysisTimestamp;
+}
 
-export const generateRandomId = (length: number) =>
-  Array.from({ length }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join("");
+export function generateRandomId(length: number) {
+  return Array.from({ length }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join("");
+}
 
 export default {
   removeNewlinesAndExtractValues,

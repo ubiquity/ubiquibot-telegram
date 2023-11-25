@@ -3,14 +3,14 @@ import { JWTResponse, validateJWT } from "./jwt";
 import { replyMessage, sendReply } from "./triggers";
 import { escapeMarkdown } from "./utils";
 
-export const sendLogsToGroup = async (ev: ExtendableEventType) => {
+export async function sendLogsToGroup(ev: ExtendableEventType) {
   const headers = ev.request.headers;
   const jwtAuth = headers.get("Authorization");
 
   // Check if the Authorization header is missing
   if (!jwtAuth) {
     return new Response("Authorization header is missing", {
-      status: 401, // Unauthorized
+      status: 401,
       statusText: "Unauthorized",
     });
   }
@@ -29,10 +29,10 @@ export const sendLogsToGroup = async (ev: ExtendableEventType) => {
 
     // Return an error response
     return new Response("Unauthorized - JWT validation failed", {
-      status: 401, // Unauthorized
+      status: 401,
       statusText: "Unauthorized",
     });
   }
 
   return new Response("ok");
-};
+}

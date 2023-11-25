@@ -9,7 +9,7 @@ const GITHUB_API_URL = "https://api.github.com";
  * Get User in Organization
  */
 
-export const getGithubUserData = async (orgName: string, user: string) => {
+export async function getGithubUserData(orgName: string, user: string) {
   try {
     const apiUrl = `${GITHUB_API_URL}/orgs/${orgName}/memberships/${user}`;
 
@@ -31,12 +31,12 @@ export const getGithubUserData = async (orgName: string, user: string) => {
     console.log("Error creating issue:", error);
     return null;
   }
-};
+}
 
 /**
  * Get user from username
  */
-export const getUserDataFromUsername = async (username: string) => {
+export async function getUserDataFromUsername(username: string) {
   try {
     const apiUrl = `${GITHUB_API_URL}/users/${username}`;
 
@@ -57,12 +57,12 @@ export const getUserDataFromUsername = async (username: string) => {
     console.log("Error fetching user:", error);
     return -1;
   }
-};
+}
 
 /**
  * Get user from id
  */
-export const getUserDataFromId = async (id: number) => {
+export async function getUserDataFromId(id: number) {
   try {
     const apiUrl = `${GITHUB_API_URL}/user/${id}`;
 
@@ -83,12 +83,12 @@ export const getUserDataFromId = async (id: number) => {
     console.log("Error fetching user:", error);
     return "";
   }
-};
+}
 
 /**
  * Create Issue on Github
  */
-export const createIssue = async (
+export async function createIssue(
   timeEstimate: string,
   organization: string,
   repository: string,
@@ -97,7 +97,7 @@ export const createIssue = async (
   messageLink: string,
   tagged: number,
   token: string
-) => {
+) {
   console.log("Creating Github Issue:", organization, repository, issueTitle, messageText, messageLink, tagged);
   try {
     const apiUrl = `${GITHUB_API_URL}/repos/${organization}/${repository}/issues`;
@@ -158,9 +158,9 @@ export const createIssue = async (
     console.log("Error creating issue:", error);
     return { data: null, assignees: null, error };
   }
-};
+}
 
-export const createGithubTelegramLink = async (username: string, telegramId: number, group: number, origin: string) => {
+export async function createGithubTelegramLink(username: string, telegramId: number, group: number, origin: string) {
   const id = crypto.randomUUID();
 
   await setUserSession(id, { username, group, telegramId });
@@ -170,7 +170,7 @@ export const createGithubTelegramLink = async (username: string, telegramId: num
   await replyMessage(telegramId, `Use this to link your Github: ${url}`);
 
   return true;
-};
+}
 
 export default {
   createIssue,

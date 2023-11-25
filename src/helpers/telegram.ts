@@ -7,7 +7,7 @@ import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
 // Check if user is admin of group
-export const isAdminOfChat = async (userId: number, chatId: number) => {
+export async function isAdminOfChat(userId: number, chatId: number) {
   const data = {
     chat_id: chatId,
     user_id: userId,
@@ -25,9 +25,9 @@ export const isAdminOfChat = async (userId: number, chatId: number) => {
     console.error("Error checking admin status:", error);
     return false; // Assume user is not an admin in case of error
   }
-};
+}
 
-export const getBotUsername = async () => {
+export async function getBotUsername() {
   try {
     const response = await fetch(apiUrl("getMe"));
     const data = await response.json();
@@ -42,9 +42,9 @@ export const getBotUsername = async () => {
     console.error("Error fetching bot username:", error);
     return "UNKNOWN_BOT"; // Fallback in case of error
   }
-};
+}
 
-export const getGroupDetails = async (chatId: number) => {
+export async function getGroupDetails(chatId: number) {
   const params = {
     chat_id: chatId,
   };
@@ -65,23 +65,23 @@ export const getGroupDetails = async (chatId: number) => {
     console.log("Error fetching bot username:", error);
     return { name: null, is_forum: false }; // Fallback in case of error
   }
-};
+}
 
-export const isBotAdded = async (chatId: number, fromId: number, groupName: string, previousStatus: string) => {
+export async function isBotAdded(chatId: number, fromId: number, groupName: string, previousStatus: string) {
   if (previousStatus && (previousStatus === "administrator" || previousStatus === "member")) {
     return;
   }
   console.log("bot added");
   await addTelegramBot(chatId, fromId, groupName);
   await replyMessage(chatId, "Bot successfully installed, please use the /start command in private chat to set it up");
-};
+}
 
-export const isBotRemoved = async (chatId: number, fromId: number) => {
+export async function isBotRemoved(chatId: number, fromId: number) {
   console.log("bot removed", chatId, fromId);
   //await removeTelegramBot(chatId, fromId) // do nothing now
-};
+}
 
-export const listGroupsWithBot = async (from: number, chatId: number, messageId: number | null = null) => {
+export async function listGroupsWithBot(from: number, chatId: number, messageId: number | null = null) {
   const res = await getTelegramBotByFromId(from);
   const groups = res && res.data;
 
@@ -98,9 +98,9 @@ export const listGroupsWithBot = async (from: number, chatId: number, messageId:
       ? await editBotMessage(chatId, messageId, "You do not have the bot installed on any of your groups or supabase is not correctly configured.")
       : await replyMessage(chatId, "You do not have the bot installed on any of your groups or supabase is not correctly configured.");
   }
-};
+}
 
-export const handleSetGithubRepo = async (fromId: number, chatId: number, chatType: string, githubUrlOrRepo: string) => {
+export async function handleSetGithubRepo(fromId: number, chatId: number, chatType: string, githubUrlOrRepo: string) {
   // Check if the input contains "/issues" and remove it if present
   const githubUrlWithoutIssues = githubUrlOrRepo.replace(/\/issues$/, "");
 
@@ -137,9 +137,9 @@ export const handleSetGithubRepo = async (fromId: number, chatId: number, chatTy
     },
   ]);
   return true;
-};
+}
 
-export const enableForumInGroup = async (fromId: number, chatId: number, messageId: number, forumName: string, threadId: number) => {
+export async function enableForumInGroup(fromId: number, chatId: number, messageId: number, forumName: string, threadId: number) {
   const isAdmin = await isAdminOfChat(fromId, chatId);
 
   if (!isAdmin) {
@@ -152,9 +152,9 @@ export const enableForumInGroup = async (fromId: number, chatId: number, message
 
   await addForum(chatId, threadId, forumName, "", true);
   return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
-};
+}
 
-export const changeForumName = async (newForumName: string, threadId: number, chatId: number, fromId: number) => {
+export async function changeForumName(newForumName: string, threadId: number, chatId: number, fromId: number) {
   const forum = await getForumByThreadId(chatId, threadId);
 
   if (!forum) {
@@ -168,9 +168,9 @@ export const changeForumName = async (newForumName: string, threadId: number, ch
   }
 
   await addForum(chatId, threadId, newForumName, forum.github_repo, forum.enabled);
-};
+}
 
-export const handleSlashCommand = async (
+export async function handleSlashCommand(
   isPrivate: boolean,
   isSlash: boolean,
   text: string,
@@ -181,7 +181,7 @@ export const handleSlashCommand = async (
   messageId: number,
   forumName: string,
   threadId: number
-) => {
+) {
   if (!username && chatId) {
     await sendReply(chatId, messageId, escapeMarkdown(`Please, set a username to use this bot!\nSettings > Username`, "*`[]()@/"), true);
     return;
@@ -227,4 +227,4 @@ export const handleSlashCommand = async (
       }
     }
   }
-};
+}

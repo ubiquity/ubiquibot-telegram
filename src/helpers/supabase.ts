@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-export const addTelegramBot = async (chatId: number, fromId: number, groupName: string) => {
+export async function addTelegramBot(chatId: number, fromId: number, groupName: string) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select().eq("from_id", fromId).eq("id", chatId);
 
@@ -29,9 +29,9 @@ export const addTelegramBot = async (chatId: number, fromId: number, groupName: 
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-export const getTelegramBotByFromId = async (fromId: number) => {
+export async function getTelegramBotByFromId(fromId: number) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select().eq("from_id", fromId);
 
@@ -39,9 +39,9 @@ export const getTelegramBotByFromId = async (fromId: number) => {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-export const removeTelegramBot = async (chatId: number, fromId: number) => {
+export async function removeTelegramBot(chatId: number, fromId: number) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").delete().eq("id", chatId).eq("from_id", fromId);
 
@@ -49,9 +49,9 @@ export const removeTelegramBot = async (chatId: number, fromId: number) => {
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-export const linkGithubRepoToTelegram = async (fromId: number, chatId: number, githubRepo: string) => {
+export async function linkGithubRepoToTelegram(fromId: number, chatId: number, githubRepo: string) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select().eq("from_id", fromId).eq("id", chatId);
     if (data && data.length > 0) {
@@ -69,9 +69,9 @@ export const linkGithubRepoToTelegram = async (fromId: number, chatId: number, g
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-export const linkGithubRepoToTelegramForum = async (id: number, githubRepo: string) => {
+export async function linkGithubRepoToTelegramForum(id: number, githubRepo: string) {
   try {
     const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", id);
     if (data && data.length > 0) {
@@ -92,9 +92,9 @@ export const linkGithubRepoToTelegramForum = async (id: number, githubRepo: stri
   } catch (error) {
     console.log(error);
   }
-};
+}
 
-export const getRepoByGroupId = async (groupId: number) => {
+export async function getRepoByGroupId(groupId: number) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select("github_repo").eq("id", groupId);
     if (data && data.length > 0) {
@@ -107,9 +107,9 @@ export const getRepoByGroupId = async (groupId: number) => {
     console.log(error);
     return "";
   }
-};
+}
 
-export const bindGithubToTelegramUser = async (groupId: number, username: string, githubId: string, token: string) => {
+export async function bindGithubToTelegramUser(groupId: number, username: string, githubId: string, token: string) {
   const { data: existingRecord } = await supabase.from("tele_git_users_maps").select("id").eq("user_id", username).eq("group_id", groupId).single();
 
   const dataObj = {
@@ -145,9 +145,9 @@ export const bindGithubToTelegramUser = async (groupId: number, username: string
 
     return data;
   }
-};
+}
 
-export const getUserGithubId = async (githubId: string, groupId: number) => {
+export async function getUserGithubId(githubId: string, groupId: number) {
   const { data, error } = await supabase.from("tele_git_users_maps").select("github_id").eq("user_id", githubId).eq("group_id", groupId);
 
   if (error) {
@@ -160,9 +160,9 @@ export const getUserGithubId = async (githubId: string, groupId: number) => {
   }
 
   return data[0].github_id;
-};
+}
 
-export const addForum = async (groupId: number, threadId: number, forumName: string, githubRepo: string, enabled: boolean) => {
+export async function addForum(groupId: number, threadId: number, forumName: string, githubRepo: string, enabled: boolean) {
   const { data: existingRecord } = await supabase
     .from("telegram_bot_forums")
     .select("id, github_repo")
@@ -205,9 +205,9 @@ export const addForum = async (groupId: number, threadId: number, forumName: str
 
     return data;
   }
-};
+}
 
-export const getForum = async (groupId: number, forumName: string) => {
+export async function getForum(groupId: number, forumName: string) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
 
   if (error) {
@@ -220,9 +220,9 @@ export const getForum = async (groupId: number, forumName: string) => {
   }
 
   return data[0];
-};
+}
 
-export const getForumByThreadId = async (groupId: number, threadId: number) => {
+export async function getForumByThreadId(groupId: number, threadId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("thread_id", threadId).eq("group_id", groupId);
 
   if (error) {
@@ -235,9 +235,9 @@ export const getForumByThreadId = async (groupId: number, threadId: number) => {
   }
 
   return data[0];
-};
+}
 
-export const getForumById = async (forumId: number) => {
+export async function getForumById(forumId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", forumId);
 
   if (error) {
@@ -250,9 +250,9 @@ export const getForumById = async (forumId: number) => {
   }
 
   return data[0];
-};
+}
 
-export const getForums = async (groupId: number) => {
+export async function getForums(groupId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId);
 
   if (error) {
@@ -265,9 +265,9 @@ export const getForums = async (groupId: number) => {
   }
 
   return data;
-};
+}
 
-export const hasEnabledForum = async (groupId: number) => {
+export async function hasEnabledForum(groupId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("enabled", true);
 
   if (error) {
@@ -280,9 +280,9 @@ export const hasEnabledForum = async (groupId: number) => {
   }
 
   return true;
-};
+}
 
-export const getUserGithubToken = async (githubId: string, groupId: number) => {
+export async function getUserGithubToken(githubId: string, groupId: number) {
   const { data, error } = await supabase.from("tele_git_users_maps").select("token").eq("user_id", githubId).eq("group_id", groupId);
 
   if (error) {
@@ -295,4 +295,4 @@ export const getUserGithubToken = async (githubId: string, groupId: number) => {
   }
 
   return data[0].token;
-};
+}

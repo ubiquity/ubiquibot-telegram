@@ -52,7 +52,7 @@ addEventListener("fetch", async (event: Event) => {
  * Handle requests to WEBHOOK
  * https://core.telegram.org/bots/api#update
  */
-const handleWebhook = async (event: ExtendableEventType, url: URL) => {
+async function handleWebhook(event: ExtendableEventType, url: URL) {
   // Check secret
   if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
     return new Response("Unauthorized", { status: 403 });
@@ -64,14 +64,14 @@ const handleWebhook = async (event: ExtendableEventType, url: URL) => {
   event.waitUntil(onUpdate(update, url));
 
   return new Response("Ok");
-};
+}
 
 /**
  * Handle incoming Update
  * supports messages and callback queries (inline button presses)
  * https://core.telegram.org/bots/api#update
  */
-const onUpdate = async (update: UpdateType, url: URL) => {
+async function onUpdate(update: UpdateType, url: URL) {
   console.log(update);
   if ("message" in update || "channel_post" in update) {
     try {
@@ -94,24 +94,24 @@ const onUpdate = async (update: UpdateType, url: URL) => {
     // queries to run on installation and removal
     await onBotInstall(update.my_chat_member);
   }
-};
+}
 
 /**
  * Set webhook to this worker's url
  * https://core.telegram.org/bots/api#setwebhook
  */
-const registerWebhook = async (requestUrl: URL, suffix: string, secret: string) => {
+async function registerWebhook(requestUrl: URL, suffix: string, secret: string) {
   // https://core.telegram.org/bots/api#setwebhook
   const webhookUrl = `${requestUrl.protocol}//${requestUrl.hostname}${suffix}`;
   const r = await (await fetch(apiUrl("setWebhook", { url: webhookUrl, secret_token: secret }))).json();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
-};
+}
 
 /**
  * Set commands
  * https://core.telegram.org/bots/api#setmycommands
  */
-const setCommands = async () => {
+async function setCommands() {
   const r = await fetch(apiUrl("setMyCommands", {}), {
     method: "POST",
     headers: {
@@ -124,19 +124,19 @@ const setCommands = async () => {
     }),
   });
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
-};
+}
 
 /**
  * Remove webhook
  * https://core.telegram.org/bots/api#setwebhook
  */
-const unRegisterWebhook = async () => {
+async function unRegisterWebhook() {
   const r = await (await fetch(apiUrl("setWebhook", { url: "" }))).json();
   await setCommands();
   return new Response("ok" in r && r.ok ? "Ok" : JSON.stringify(r, null, 2));
-};
+}
 
-const onBotInstall = async (event: MyChatQueryType) => {
+async function onBotInstall(event: MyChatQueryType) {
   const status = event.new_chat_member.status;
   const previousStatus = event.old_chat_member.status;
   const triggerUserName = event.new_chat_member.user.username;
@@ -170,7 +170,7 @@ const onBotInstall = async (event: MyChatQueryType) => {
         break;
     }
   }
-};
+}
 
 /**
  * Handle incoming callback_query (inline button press)
@@ -246,7 +246,7 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
  * Handle incoming Message
  * https://core.telegram.org/bots/api#message
  */
-const onMessage = async (message: MessageType, url: URL) => {
+async function onMessage(message: MessageType, url: URL) {
   console.log(`Received message: ${message.text}`);
 
   if (message.forum_topic_edited) {
@@ -326,4 +326,4 @@ const onMessage = async (message: MessageType, url: URL) => {
   if (issueTitle) {
     return sendReply(chatId, messageId, escapeMarkdown(`*"${issueTitle}"* on *${orgName}/${repoName}* with time estimate *${timeEstimate}*`, "*`[]()@/"));
   }
-};
+}
