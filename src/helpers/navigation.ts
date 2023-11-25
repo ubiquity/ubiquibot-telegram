@@ -80,8 +80,8 @@ export async function onPrivateCallbackQuery(callbackQuery: CallbackQueryType) {
     },
     async menu() {
       // fetch all keys and get the one with key as forum, if none, then find the one with group
-      const groupData = parsedData.find((e) => e.key === "group") as { key: ActionKeys; value: string; };
-      const forumData = parsedData.find((e) => e.key === "forum") as { key: ActionKeys; value: string; };
+      const groupData = parsedData.find((e) => e.key === "group") as { key: ActionKeys; value: string };
+      const forumData = parsedData.find((e) => e.key === "forum") as { key: ActionKeys; value: string };
 
       const data = forumData ? forumData : groupData;
       await handleFirstMenu(item.value as string, chatId, messageId, data.key, data.value as string);
