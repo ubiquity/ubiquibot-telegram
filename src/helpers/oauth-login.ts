@@ -37,7 +37,7 @@ export const getUserData = async (token: string, telegramId: number, username: s
   }
 };
 
-export const OAuthHandler = async (event: ExtendableEventType, url: URL) => {
+export const oAuthHandler = async (event: ExtendableEventType, url: URL) => {
   // handle CORS pre-flight request
   if (event.request.method === "OPTIONS") {
     return new Response(null, {

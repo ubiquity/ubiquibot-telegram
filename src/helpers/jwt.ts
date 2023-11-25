@@ -10,9 +10,9 @@ export interface JWTResponse {
 // validate and decode a JWT
 export const validateJWT = async (token: string) => {
   try {
-    const decoded = await jwt.verify(token, LOG_WEBHOOK_SECRET);
+    const isDecoded = await jwt.verify(token, LOG_WEBHOOK_SECRET);
 
-    if (!decoded) {
+    if (!isDecoded) {
       throw new Error("Invalid JWT");
     }
 
@@ -22,7 +22,7 @@ export const validateJWT = async (token: string) => {
       throw new Error("Invalid JWT, group is missing");
     }
 
-    return { decoded, payload };
+    return { decoded: isDecoded, payload };
   } catch (error) {
     throw new Error("Invalid JWT");
   }

@@ -2,7 +2,7 @@ import { removeNewlinesAndExtractValues } from "./utils";
 import { PROMPT_SYSTEM, PROMPT_USER } from "./prompt";
 import { ErrorType } from "../types/Basic";
 
-export const completeGPT3 = async (messageText: string) => {
+export async function completeGPT3(messageText: string) {
   try {
     const apiKey = OPENAI_API_KEY;
     const apiUrl = "https://api.openai.com/v1/chat/completions";
@@ -50,7 +50,7 @@ export const completeGPT3 = async (messageText: string) => {
       timeEstimate: null,
     };
   }
-};
+}
 
 export default {
   completeGPT3,

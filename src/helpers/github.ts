@@ -119,7 +119,7 @@ export const createIssue = async (
     const issueBody = generateGitHubIssueBody(messageText, messageLink);
 
     // get user if tagged exist
-    let assignees: string[];
+    let assignees: string[] | null = null;
 
     if (tagged === -1) {
       assignees = [];
@@ -143,10 +143,20 @@ export const createIssue = async (
       }),
     });
     const data = await response.json();
-    return { data, assignees: assignees !== null && assignees.length > 0 };
+
+    if (assignees !== null && assignees.length > 0) {
+      // assignees = assignees;
+    } else {
+      assignees = null;
+    }
+
+    return {
+      data,
+      assignees,
+    };
   } catch (error) {
     console.log("Error creating issue:", error);
-    return { data: null, assignees: false, error };
+    return { data: null, assignees: null, error };
   }
 };
 

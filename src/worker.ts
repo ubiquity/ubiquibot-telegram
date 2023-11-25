@@ -6,20 +6,20 @@ import { BOT_COMMANDS, ENABLE_TOPIC, GITHUB_PATHNAME } from "./constants";
 import { completeGPT3 } from "./helpers/chatGPT";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
-import { OAuthHandler } from "./helpers/oauth-login";
+import { oAuthHandler } from "./helpers/oauth-login";
 import { getForum, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
 import { changeForumName, getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
 import {
   cleanMessage,
-  isCooldownReady,
-  setLastAnalysisTimestamp,
   escapeMarkdown,
   extractTag,
   extractTaskInfo,
   generateMessageLink,
   getRepoData,
+  isCooldownReady,
   removeTag,
+  setLastAnalysisTimestamp,
   slashCommandCheck,
 } from "./helpers/utils";
 import { sendLogsToGroup } from "./helpers/webhook";
@@ -34,7 +34,7 @@ addEventListener("fetch", async (event: Event) => {
   if (url.pathname === WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType, url));
   } else if (url.pathname === GITHUB_PATHNAME) {
-    await ev.respondWith(OAuthHandler(ev as ExtendableEventType, url));
+    await ev.respondWith(oAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
     await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
@@ -215,19 +215,19 @@ async function onCallbackQuery(callbackQuery: CallbackQueryType) {
 
     // get tagged user if available
     const tagged = extractTag(replyToMessage);
-    let github_id;
+    let githubId;
 
     if (tagged) {
-      github_id = await getUserGithubId(tagged, groupId);
-      console.log("Tagged user found:", github_id);
+      githubId = await getUserGithubId(tagged, groupId);
+      console.log("Tagged user found:", githubId);
 
-      !github_id && (await sendReply(groupId, messageId, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true));
+      !githubId && (await sendReply(groupId, messageId, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true));
     }
 
     // remove tag from issue body
     const tagFreeTitle = removeTag(replyToMessage);
 
-    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, github_id || -1, token);
+    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, githubId || -1, token);
 
     console.log(`Issue created: ${data.html_url} ${data.message}`);
 
@@ -291,14 +291,14 @@ const onMessage = async (message: MessageType, url: URL) => {
   }
 
   // Analyze the message with ChatGPT
-  const GPT3Info = await completeGPT3(msgText);
+  const gpt3Info = await completeGPT3(msgText);
 
-  if (GPT3Info == undefined || GPT3Info.issueTitle == null) {
+  if (gpt3Info == undefined || gpt3Info.issueTitle == null) {
     console.log(`No valid task found`);
     return;
   }
 
-  const { issueTitle, timeEstimate } = GPT3Info;
+  const { issueTitle, timeEstimate } = gpt3Info;
 
   if (forumName) {
     const res = await getForum(chatId, forumName);
