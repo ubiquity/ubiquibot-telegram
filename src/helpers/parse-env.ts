@@ -1,3 +1,7 @@
+import { config } from "dotenv";
+
+config(); // Load environment variables from .env file
+
 export function checkEnvVars() {
   const requiredEnvVars = [
     "OPENAI_API_KEY",
@@ -20,6 +24,7 @@ export function checkEnvVars() {
     process.exit(1); // Exit the process with an error code
   }
 
+  // Return an object with the environment variables
   return requiredEnvVars.reduce(
     (env, varName) => {
       env[varName] = process.env[varName] as string;
