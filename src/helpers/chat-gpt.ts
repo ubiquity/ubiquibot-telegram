@@ -1,10 +1,13 @@
 import { ErrorType } from "../types/telegram";
 import { PROMPT_SYSTEM, PROMPT_USER } from "./prompt";
 import { removeNewlinesAndExtractValues } from "./utils";
+import { checkEnvVars } from "./parse-env";
+
+const env = checkEnvVars();
 
 export async function completeGpt3(messageText: string) {
   try {
-    const apiKey = OPENAI_API_KEY;
+    const apiKey = env.OPENAI_API_KEY;
     const apiUrl = "https://api.openai.com/v1/chat/completions";
 
     const requestBody = {
@@ -51,7 +54,3 @@ export async function completeGpt3(messageText: string) {
     };
   }
 }
-
-export default {
-  completeGPT3: completeGpt3,
-};

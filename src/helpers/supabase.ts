@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+import { checkEnvVars } from "./parse-env";
+const env = checkEnvVars();
+export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
 const ERROR_ADDING_REPO = "Error adding github_repo to supabase";
 const ERROR_GETTING_FORUM = "Error getting forum:";
@@ -37,16 +38,6 @@ export async function addTelegramBot(chatId: number, fromId: number, groupName: 
 export async function getTelegramBotByFromId(fromId: number) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select().eq("from_id", fromId);
-
-    return { data, error };
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-export async function removeTelegramBot(chatId: number, fromId: number) {
-  try {
-    const { data, error } = await supabase.from("telegram_bot_groups").delete().eq("id", chatId).eq("from_id", fromId);
 
     return { data, error };
   } catch (error) {

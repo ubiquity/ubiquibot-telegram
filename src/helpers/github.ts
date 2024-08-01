@@ -2,6 +2,8 @@ import { GITHUB_PATHNAME } from "../constants";
 import { setUserSession } from "./session";
 import { replyMessage } from "./triggers";
 import { capitalizeWords, generateGitHubIssueBody } from "./utils";
+import { checkEnvVars } from "./parse-env";
+const env = checkEnvVars();
 
 const GITHUB_API_URL = "https://api.github.com";
 const TELEGRAM_CF_WORKER = "Telegram Cloudflare Worker";
@@ -10,29 +12,29 @@ const TELEGRAM_CF_WORKER = "Telegram Cloudflare Worker";
  * Get User in Organization
  */
 
-export async function getGithubUserData(orgName: string, user: string) {
-  try {
-    const apiUrl = `${GITHUB_API_URL}/orgs/${orgName}/memberships/${user}`;
+// export async function getGithubUserData(orgName: string, user: string) {
+//   try {
+//     const apiUrl = `${GITHUB_API_URL}/orgs/${orgName}/memberships/${user}`;
 
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `token ${GITHUB_PAT}`,
-        "Content-Type": "application/json",
-        "User-Agent": TELEGRAM_CF_WORKER,
-      },
-    });
-    const data = await response.json();
-    // check if user exist
-    if (data?.user) {
-      return [data?.user?.login];
-    }
-    return [];
-  } catch (error) {
-    console.log("Error creating issue:", error);
-    return null;
-  }
-}
+//     const response = await fetch(apiUrl, {
+//       method: "GET",
+//       headers: {
+//         Authorization: `token ${env.GITHUB_PAT}`,
+//         "Content-Type": "application/json",
+//         "User-Agent": TELEGRAM_CF_WORKER,
+//       },
+//     });
+//     const data = await response.json();
+//     // check if user exist
+//     if (data?.user) {
+//       return [data?.user?.login];
+//     }
+//     return [];
+//   } catch (error) {
+//     console.log("Error creating issue:", error);
+//     return null;
+//   }
+// }
 
 /**
  * Get user from username
@@ -44,7 +46,7 @@ export async function getUserDataFromUsername(username: string) {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `token ${GITHUB_PAT}`,
+        Authorization: `token ${env.GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": TELEGRAM_CF_WORKER,
       },
@@ -70,7 +72,7 @@ export async function getUserDataFromId(id: number) {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `token ${GITHUB_PAT}`,
+        Authorization: `token ${env.GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": TELEGRAM_CF_WORKER,
       },
@@ -132,7 +134,7 @@ export async function createIssue(
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `token ${token || GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
+        Authorization: `token ${token || env.GITHUB_INSTALLATION_TOKEN || env.GITHUB_PAT}`,
         "Content-Type": "application/json",
         "User-Agent": TELEGRAM_CF_WORKER,
       },
@@ -172,7 +174,3 @@ export async function createGithubTelegramLink(username: string, telegramId: num
 
   return true;
 }
-
-export default {
-  createIssue,
-};

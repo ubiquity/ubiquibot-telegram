@@ -184,27 +184,3 @@ export function createKeyboardRow(keyboardValues: KeyboardDataType[]) {
     return acc;
   }, []);
 }
-
-export function getLastAnalysisTimestamp() {
-  return lastAnalysisTimestamp;
-}
-
-export function generateRandomId(length: number) {
-  // cspell:disable-next-line
-  return Array.from({ length }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join("");
-}
-
-export default {
-  removeNewlinesAndExtractValues,
-  cleanMessage,
-  escapeMarkdown,
-  getRepoData,
-  extractTag,
-  generateMessageLink,
-  generateGitHubIssueBody,
-  extractTaskInfo,
-  removeTag,
-  isCoolDownReady,
-  getLastAnalysisTimestamp,
-  setLastAnalysisTimestamp,
-};

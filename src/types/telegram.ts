@@ -1,8 +1,3 @@
-export type RepoType = {
-  group: number;
-  github: string;
-};
-
 export type ApiParam = {
   chat_id?: number;
   message_id?: number;

@@ -1,4 +1,6 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
+import { checkEnvVars } from "./parse-env";
+const env = checkEnvVars();
 
 // data to include in the JWT
 export interface JwtResponse {
@@ -10,7 +12,7 @@ export interface JwtResponse {
 // validate and decode a JWT
 export async function validateJwt(token: string) {
   try {
-    const isDecoded = await jwt.verify(token, LOG_WEBHOOK_SECRET);
+    const isDecoded = await jwt.verify(token, env.LOG_WEBHOOK_SECRET);
 
     if (!isDecoded) {
       throw new Error("Invalid JWT");

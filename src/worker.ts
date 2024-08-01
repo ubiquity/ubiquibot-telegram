@@ -1,12 +1,13 @@
 /**
  * All console.log for debugging the worker on cloudflare dashboard
  */
-
+const env = checkEnvVars();
 import { BOT_COMMANDS, ENABLE_TOPIC, GITHUB_PATHNAME } from "./constants";
 import { completeGpt3 } from "./helpers/chat-gpt";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { oAuthHandler } from "./helpers/oauth-login";
+import { checkEnvVars } from "./helpers/parse-env";
 import { getForum, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
 import { changeForumName, getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
@@ -31,12 +32,12 @@ import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, My
 addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
-  if (url.pathname === WEBHOOK) {
+  if (url.pathname === env.WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType, url));
   } else if (url.pathname === GITHUB_PATHNAME) {
     await ev.respondWith(oAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
-    await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
+    await ev.respondWith(registerWebhook(url, env.WEBHOOK || "", env.SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
     await ev.respondWith(unRegisterWebhook());
   } else if (url.pathname === "/setCommands") {
@@ -54,7 +55,7 @@ addEventListener("fetch", async (event: Event) => {
  */
 async function handleWebhook(event: ExtendableEventType, url: URL) {
   // Check secret
-  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
+  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.SECRET) {
     return new Response("Unauthorized", { status: 403 });
   }
 
