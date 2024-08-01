@@ -41,8 +41,7 @@ export function cleanMessage(text: string) {
 
 export function removeTag(text: string) {
   // Remove all occurrences of @tag
-  const cleanedText = text.replace(/@\w+/g, "").trim();
-  return cleanedText;
+  return text.replace(/@\w+/g, "").trim();
 }
 
 export function extractTag(text: string) {
@@ -176,7 +175,7 @@ export function parseCallData(callData: string): ParsedDataType[] {
 
 // divide keyboardValues into chunks of 2
 export function createKeyboardRow(keyboardValues: KeyboardDataType[]) {
-  const res = keyboardValues.reduce((acc: KeyboardDataType[][], cur, i) => {
+  return keyboardValues.reduce((acc: KeyboardDataType[][], cur, i) => {
     const index = Math.floor(i / 2);
     if (!acc[index]) {
       acc[index] = [];
@@ -184,8 +183,6 @@ export function createKeyboardRow(keyboardValues: KeyboardDataType[]) {
     acc[index].push(cur);
     return acc;
   }, []);
-
-  return res;
 }
 
 export function getLastAnalysisTimestamp() {

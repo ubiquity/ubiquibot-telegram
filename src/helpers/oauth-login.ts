@@ -89,9 +89,7 @@ export async function oAuthHandler(event: ExtendableEventType, url: URL) {
 
       const { username, group, telegramId: id } = await getUserSession(telegramId as string);
 
-      const res = await getUserData(result.access_token, id, username, group, headers);
-
-      return res;
+      return await getUserData(result.access_token, id, username, group, headers);
     } else {
       return new Response(JSON.stringify({ error: "Not a valid session" }), {
         status: 400,
