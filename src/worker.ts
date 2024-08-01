@@ -23,7 +23,7 @@ import {
   slashCommandCheck,
 } from "./helpers/utils";
 import { sendLogsToGroup } from "./helpers/webhook";
-import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/basic";
+import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/telegram";
 
 /**
  * Wait for requests to the worker

@@ -1,5 +1,5 @@
 import { ENABLE_TOPIC } from "../constants";
-import { CallbackQueryType, KeyboardDataType } from "../types/basic";
+import { CallbackQueryType, KeyboardDataType } from "../types/telegram";
 
 import { setUserSession } from "./session";
 import { getForumById, getForums, hasEnabledForum } from "./supabase";

@@ -1,4 +1,4 @@
-import { ErrorType } from "../types/basic";
+import { ErrorType } from "../types/telegram";
 import { PROMPT_SYSTEM, PROMPT_USER } from "./prompt";
 import { removeNewlinesAndExtractValues } from "./utils";
 

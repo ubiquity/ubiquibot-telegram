@@ -1,4 +1,4 @@
-import { ExtendableEventType } from "../types/basic";
+import { ExtendableEventType } from "../types/telegram";
 import { JwtResponse, validateJwt } from "./jwt";
 import { replyMessage, sendReply } from "./triggers";
 import { escapeMarkdown } from "./utils";

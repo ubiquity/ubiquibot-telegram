@@ -1,4 +1,4 @@
-import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/basic";
+import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/telegram";
 import { getForum, getRepoByGroupId } from "./supabase";
 
 // global variable to track the last successful analysis timestamp

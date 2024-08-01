@@ -1,5 +1,5 @@
 import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
-import { KeyboardDataType } from "../types/basic";
+import { KeyboardDataType } from "../types/telegram";
 import { createGithubTelegramLink } from "./github";
 import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { addForum, addTelegramBot, getForumByThreadId, getTelegramBotByFromId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";

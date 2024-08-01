@@ -1,5 +1,5 @@
 import { GITHUB_PATHNAME } from "../constants";
-import { ExtendableEventType } from "../types/basic";
+import { ExtendableEventType } from "../types/telegram";
 import { getUserDataFromUsername } from "./github";
 import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { bindGithubToTelegramUser } from "./supabase";
