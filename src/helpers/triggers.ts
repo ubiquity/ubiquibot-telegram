@@ -1,4 +1,4 @@
-import { ApiParam, DataType, KeyboardDataType } from "../types/Basic";
+import { ApiParam, DataType, KeyboardDataType } from "../types/basic";
 import { createKeyboardRow, escapeMarkdown } from "./utils";
 
 /**

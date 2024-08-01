@@ -1,5 +1,5 @@
 import { GITHUB_PATHNAME } from "../constants";
-import { ExtendableEventType } from "../types/Basic";
+import { ExtendableEventType } from "../types/basic";
 import { getUserDataFromUsername } from "./github";
 import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { bindGithubToTelegramUser } from "./supabase";
@@ -24,14 +24,14 @@ export async function getUserData(token: string, telegramId: number, username: s
   if (id) {
     await bindGithubToTelegramUser(groupId, username, id, token);
 
-    await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
+    await replyMessage(telegramId, `Your telegram account has been associated with Github account: *${login}*`);
 
-    return new Response(JSON.stringify({ success: `${login} has been binded to your telegram account` }), {
+    return new Response(JSON.stringify({ success: `${login} has been associated to your telegram account` }), {
       status: 201,
       headers,
     });
   } else {
-    return new Response(JSON.stringify({ error: "Error occured while fetching user" }), {
+    return new Response(JSON.stringify({ error: "Error occurred while fetching user" }), {
       status: 400,
     });
   }

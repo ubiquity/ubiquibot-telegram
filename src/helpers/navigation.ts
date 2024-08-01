@@ -1,5 +1,5 @@
 import { ENABLE_TOPIC } from "../constants";
-import { CallbackQueryType, KeyboardDataType } from "../types/Basic";
+import { CallbackQueryType, KeyboardDataType } from "../types/basic";
 
 import { setUserSession } from "./session";
 import { getForumById, getForums, hasEnabledForum } from "./supabase";
@@ -8,13 +8,11 @@ import { editBotMessage, replyMessage } from "./triggers";
 import { parseCallData } from "./utils";
 
 export async function handleFirstMenu(value: string, chatId: number, messageId: number, groupKey: string, groupData: string) {
-  switch (value) {
-    case "link_github":
-      await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this ${groupKey}.`);
-      await setUserSession(chatId, { v: "link_github", c: groupData, k: groupKey });
-      break;
-    default:
-      break;
+  if (value === "link_github") {
+    await editBotMessage(chatId, messageId, `Please provide the URL of repository you want to link to this ${groupKey}.`);
+    await setUserSession(chatId, { v: "link_github", c: groupData, k: groupKey });
+  } else {
+    // Handle default case if needed
   }
 }
 

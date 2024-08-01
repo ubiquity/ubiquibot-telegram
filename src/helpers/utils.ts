@@ -1,11 +1,11 @@
-import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/Basic";
-import { getRepoByGroupId, getForum } from "./supabase";
+import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/basic";
+import { getForum, getRepoByGroupId } from "./supabase";
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
 
-// Define the cooldown interval in milliseconds
-const cooldownInterval = 60000; // Example: 1 minute cooldown
+// Define the cool down interval in milliseconds
+const coolDownInterval = 60000; // Example: 1 minute cool down
 
 /**
  * Escape string for use in MarkdownV2-style text
@@ -151,10 +151,10 @@ export function extractSlashCommand(text: string) {
   };
 }
 
-// Cooldown function that checks if the cooldown period has passed
-export function isCooldownReady() {
+// Cool down function that checks if the cool down period has passed
+export function isCoolDownReady() {
   const currentTime = Date.now();
-  return currentTime - lastAnalysisTimestamp >= cooldownInterval;
+  return currentTime - lastAnalysisTimestamp >= coolDownInterval;
 }
 
 export function setLastAnalysisTimestamp(timestamp: number) {
@@ -190,6 +190,7 @@ export function getLastAnalysisTimestamp() {
 }
 
 export function generateRandomId(length: number) {
+  // cspell:disable-next-line
   return Array.from({ length }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join("");
 }
 
@@ -203,7 +204,7 @@ export default {
   generateGitHubIssueBody,
   extractTaskInfo,
   removeTag,
-  isCooldownReady,
+  isCoolDownReady,
   getLastAnalysisTimestamp,
   setLastAnalysisTimestamp,
 };

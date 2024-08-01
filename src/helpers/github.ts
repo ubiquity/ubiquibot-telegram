@@ -4,6 +4,7 @@ import { replyMessage } from "./triggers";
 import { capitalizeWords, generateGitHubIssueBody } from "./utils";
 
 const GITHUB_API_URL = "https://api.github.com";
+const TELEGRAM_CF_WORKER = "Telegram Cloudflare Worker";
 
 /**
  * Get User in Organization
@@ -18,7 +19,7 @@ export async function getGithubUserData(orgName: string, user: string) {
       headers: {
         Authorization: `token ${GITHUB_PAT}`,
         "Content-Type": "application/json",
-        "User-Agent": "Telegram Cloudflare Worker",
+        "User-Agent": TELEGRAM_CF_WORKER,
       },
     });
     const data = await response.json();
@@ -45,7 +46,7 @@ export async function getUserDataFromUsername(username: string) {
       headers: {
         Authorization: `token ${GITHUB_PAT}`,
         "Content-Type": "application/json",
-        "User-Agent": "Telegram Cloudflare Worker",
+        "User-Agent": TELEGRAM_CF_WORKER,
       },
     });
     const data = await response.json();
@@ -71,7 +72,7 @@ export async function getUserDataFromId(id: number) {
       headers: {
         Authorization: `token ${GITHUB_PAT}`,
         "Content-Type": "application/json",
-        "User-Agent": "Telegram Cloudflare Worker",
+        "User-Agent": TELEGRAM_CF_WORKER,
       },
     });
     const data = await response.json();
@@ -133,7 +134,7 @@ export async function createIssue(
       headers: {
         Authorization: `token ${token || GITHUB_INSTALLATION_TOKEN || GITHUB_PAT}`,
         "Content-Type": "application/json",
-        "User-Agent": "Telegram Cloudflare Worker",
+        "User-Agent": TELEGRAM_CF_WORKER,
       },
       body: JSON.stringify({
         title: titleCapitalized,

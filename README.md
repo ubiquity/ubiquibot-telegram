@@ -34,7 +34,7 @@ yarn
   "github_oauth_client_secret": "", // Github OAuth App Client Secret
   "log_webhook_secret": "", // Secret for JWT Validation on Logs Notification
   "supabase_key": "", // Supabase Service Role Key
-  "supabase_url": "" // Supabase Project URL
+  "supabase_url": "", // Supabase Project URL
 }
 ```
 
