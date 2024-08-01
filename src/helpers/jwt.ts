@@ -16,7 +16,7 @@ export async function validateJwt(token: string) {
       throw new Error("Invalid JWT");
     }
 
-    const { payload } = jwt.decode(token);
+    const { payload } = jwt.decode(token) as { payload: JwtResponse };
 
     if (!payload.group) {
       throw new Error("Invalid JWT, group is missing");

@@ -3,7 +3,7 @@
  */
 
 import { BOT_COMMANDS, ENABLE_TOPIC, GITHUB_PATHNAME } from "./constants";
-import { completeGpt3 } from "./helpers/chatgpt";
+import { completeGpt3 } from "./helpers/chat-gpt";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { oAuthHandler } from "./helpers/oauth-login";

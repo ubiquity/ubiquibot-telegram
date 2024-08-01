@@ -12,7 +12,7 @@
     "deploy": "wrangler deploy",
     "start": "wrangler dev",
     "setup-key": "tsx ./deploy-keys.ts",
-    "build": "tsx build/esbuild-build.ts",
+    "build": "tsc --noEmit",
     "format": "run-s format:lint format:prettier format:cspell",
     "format:lint": "eslint --fix .",
     "format:prettier": "prettier --write .",
