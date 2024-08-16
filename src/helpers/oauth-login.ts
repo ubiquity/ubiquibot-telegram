@@ -1,9 +1,11 @@
+const env = checkEnvVars();
 import { GITHUB_PATHNAME } from "../constants";
-import { ExtendableEventType } from "../types/Basic";
+import { ExtendableEventType } from "../types/telegram";
 import { getUserDataFromUsername } from "./github";
 import { deleteUserSession, getUserSession, hasUserSession } from "./session";
 import { bindGithubToTelegramUser } from "./supabase";
 import { replyMessage } from "./triggers";
+import { checkEnvVars } from "./parse-env";
 
 // Define the scope for requesting access to public data and repo issues
 const scope = "public_repo";
@@ -24,14 +26,14 @@ export async function getUserData(token: string, telegramId: number, username: s
   if (id) {
     await bindGithubToTelegramUser(groupId, username, id, token);
 
-    await replyMessage(telegramId, `Your telegram account has been binded with Github account: *${login}*`);
+    await replyMessage(telegramId, `Your telegram account has been associated with Github account: *${login}*`);
 
-    return new Response(JSON.stringify({ success: `${login} has been binded to your telegram account` }), {
+    return new Response(JSON.stringify({ success: `${login} has been associated to your telegram account` }), {
       status: 201,
       headers,
     });
   } else {
-    return new Response(JSON.stringify({ error: "Error occured while fetching user" }), {
+    return new Response(JSON.stringify({ error: "Error occurred while fetching user" }), {
       status: 400,
     });
   }
@@ -62,7 +64,7 @@ export async function oAuthHandler(event: ExtendableEventType, url: URL) {
       });
 
     return Response.redirect(
-      `https://github.com/login/oauth/authorize?client_id=${GITHUB_OAUTH_CLIENT_ID}&scope=${scope}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
+      `https://github.com/login/oauth/authorize?client_id=${env.GITHUB_OAUTH_CLIENT_ID}&scope=${scope}&redirect_uri=${url.origin}${GITHUB_PATHNAME}?telegramId=${telegramId}`,
       302
     );
   }
@@ -76,7 +78,7 @@ export async function oAuthHandler(event: ExtendableEventType, url: URL) {
           "User-Agent": "Telegram Cloudflare Worker",
           accept: "application/json",
         },
-        body: JSON.stringify({ client_id: GITHUB_OAUTH_CLIENT_ID, client_secret: GITHUB_OAUTH_CLIENT_SECRET, code, scope }),
+        body: JSON.stringify({ client_id: env.GITHUB_OAUTH_CLIENT_ID, client_secret: env.GITHUB_OAUTH_CLIENT_SECRET, code, scope }),
       });
       const result = await response.json();
       const headers = {
@@ -89,9 +91,7 @@ export async function oAuthHandler(event: ExtendableEventType, url: URL) {
 
       const { username, group, telegramId: id } = await getUserSession(telegramId as string);
 
-      const res = await getUserData(result.access_token, id, username, group, headers);
-
-      return res;
+      return await getUserData(result.access_token, id, username, group, headers);
     } else {
       return new Response(JSON.stringify({ error: "Not a valid session" }), {
         status: 400,

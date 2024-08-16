@@ -1,9 +1,9 @@
 import { ENABLE_TOPIC, GITHUB_PATHNAME } from "../constants";
-import { KeyboardDataType } from "../types/Basic";
+import { KeyboardDataType } from "../types/telegram";
 import { createGithubTelegramLink } from "./github";
-import { hasUserSession, getUserSession, deleteUserSession } from "./session";
-import { addTelegramBot, addForum, getTelegramBotByFromId, getForumByThreadId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
-import { apiUrl, replyMessage, editBotMessage, sendReply } from "./triggers";
+import { deleteUserSession, getUserSession, hasUserSession } from "./session";
+import { addForum, addTelegramBot, getForumByThreadId, getTelegramBotByFromId, linkGithubRepoToTelegram, linkGithubRepoToTelegramForum } from "./supabase";
+import { apiUrl, editBotMessage, replyMessage, sendReply } from "./triggers";
 import { escapeMarkdown, extractSlashCommand } from "./utils";
 
 // Check if user is admin of group
@@ -154,7 +154,7 @@ export async function enableForumInGroup(fromId: number, chatId: number, message
   return await sendReply(chatId, messageId, escapeMarkdown(`Topic successfully added to list`, "*`[]()@/"), true);
 }
 
-export async function changeForumName(newForumName: string, threadId: number, chatId: number, fromId: number) {
+export async function changeForumName({ newForumName, threadId, chatId, fromId }: { newForumName: string; threadId: number; chatId: number; fromId: number }) {
   const forum = await getForumByThreadId(chatId, threadId);
 
   if (!forum) {
@@ -188,42 +188,52 @@ export async function handleSlashCommand(
   }
 
   const botName = await getBotUsername();
-  console.log(botName);
 
   if (isSlash) {
-    const { command } = extractSlashCommand(text);
-
-    switch (command) {
-      case "/start":
-        if (isPrivate) {
-          await listGroupsWithBot(fromId, chatId); // private chat only
-        }
-        break;
-      case GITHUB_PATHNAME:
-      case `${GITHUB_PATHNAME}@${botName}`:
-        await createGithubTelegramLink(username, fromId, chatId, url.origin);
-        break;
-      case ENABLE_TOPIC:
-      case `${ENABLE_TOPIC}@${botName}`:
-        await enableForumInGroup(fromId, chatId, messageId, forumName, threadId);
-        break;
-      default:
-        break;
-    }
+    await handleSlashCommands(text, isPrivate, fromId, chatId, username, url, messageId, forumName, threadId, botName);
   } else {
-    if (await hasUserSession(chatId)) {
-      const userContext = await getUserSession(chatId);
-      switch (userContext.v) {
-        case "link_github": {
-          const isSaved = await handleSetGithubRepo(fromId, userContext.c, userContext.k, text);
-          if (isSaved) {
-            await deleteUserSession(chatId);
-          }
-          break;
-        }
-        default:
-          console.log("User replied:", text);
-          break;
+    await handleNonSlashCommands(chatId, fromId, text);
+  }
+}
+
+async function handleSlashCommands(
+  text: string,
+  isPrivate: boolean,
+  fromId: number,
+  chatId: number,
+  username: string,
+  url: URL,
+  messageId: number,
+  forumName: string,
+  threadId: number,
+  botName: string
+) {
+  const { command } = extractSlashCommand(text);
+
+  switch (command) {
+    case "/start":
+      if (isPrivate) {
+        await listGroupsWithBot(fromId, chatId);
+      }
+      break;
+    case GITHUB_PATHNAME:
+    case `${GITHUB_PATHNAME}@${botName}`:
+      await createGithubTelegramLink(username, fromId, chatId, url.origin);
+      break;
+    case ENABLE_TOPIC:
+    case `${ENABLE_TOPIC}@${botName}`:
+      await enableForumInGroup(fromId, chatId, messageId, forumName, threadId);
+      break;
+  }
+}
+
+async function handleNonSlashCommands(chatId: number, fromId: number, text: string) {
+  if (await hasUserSession(chatId)) {
+    const userContext = await getUserSession(chatId);
+    if (userContext.v === "link_github") {
+      const isSaved = await handleSetGithubRepo(fromId, userContext.c, userContext.k, text);
+      if (isSaved) {
+        await deleteUserSession(chatId);
       }
     }
   }

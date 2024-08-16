@@ -6,4 +6,8 @@ node_modules
 .yarn
 .pnp.cjs
 .pnp.loader.mjs
-environment.json
+.env
+static/dist
+coverage
+junit.xml
+.wrangler/

@@ -1,11 +1,11 @@
-import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/Basic";
-import { getRepoByGroupId, getForum } from "./supabase";
+import { KeyboardDataType, ParsedDataType, TaskInfoType } from "../types/telegram";
+import { getForum, getRepoByGroupId } from "./supabase";
 
 // global variable to track the last successful analysis timestamp
 let lastAnalysisTimestamp = 0;
 
-// Define the cooldown interval in milliseconds
-const cooldownInterval = 60000; // Example: 1 minute cooldown
+// Define the cool down interval in milliseconds
+const coolDownInterval = 60000; // Example: 1 minute cool down
 
 /**
  * Escape string for use in MarkdownV2-style text
@@ -41,8 +41,7 @@ export function cleanMessage(text: string) {
 
 export function removeTag(text: string) {
   // Remove all occurrences of @tag
-  const cleanedText = text.replace(/@\w+/g, "").trim();
-  return cleanedText;
+  return text.replace(/@\w+/g, "").trim();
 }
 
 export function extractTag(text: string) {
@@ -152,10 +151,10 @@ export function extractSlashCommand(text: string) {
   };
 }
 
-// Cooldown function that checks if the cooldown period has passed
-export function isCooldownReady() {
+// Cool down function that checks if the cool down period has passed
+export function isCoolDownReady() {
   const currentTime = Date.now();
-  return currentTime - lastAnalysisTimestamp >= cooldownInterval;
+  return currentTime - lastAnalysisTimestamp >= coolDownInterval;
 }
 
 export function setLastAnalysisTimestamp(timestamp: number) {
@@ -176,7 +175,7 @@ export function parseCallData(callData: string): ParsedDataType[] {
 
 // divide keyboardValues into chunks of 2
 export function createKeyboardRow(keyboardValues: KeyboardDataType[]) {
-  const res = keyboardValues.reduce((acc: KeyboardDataType[][], cur, i) => {
+  return keyboardValues.reduce((acc: KeyboardDataType[][], cur, i) => {
     const index = Math.floor(i / 2);
     if (!acc[index]) {
       acc[index] = [];
@@ -184,29 +183,4 @@ export function createKeyboardRow(keyboardValues: KeyboardDataType[]) {
     acc[index].push(cur);
     return acc;
   }, []);
-
-  return res;
 }
-
-export function getLastAnalysisTimestamp() {
-  return lastAnalysisTimestamp;
-}
-
-export function generateRandomId(length: number) {
-  return Array.from({ length }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join("");
-}
-
-export default {
-  removeNewlinesAndExtractValues,
-  cleanMessage,
-  escapeMarkdown,
-  getRepoData,
-  extractTag,
-  generateMessageLink,
-  generateGitHubIssueBody,
-  extractTaskInfo,
-  removeTag,
-  isCooldownReady,
-  getLastAnalysisTimestamp,
-  setLastAnalysisTimestamp,
-};

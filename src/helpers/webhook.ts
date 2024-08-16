@@ -1,5 +1,5 @@
-import { ExtendableEventType } from "../types/Basic";
-import { JWTResponse, validateJWT } from "./jwt";
+import { ExtendableEventType } from "../types/telegram";
+import { JwtResponse, validateJwt } from "./jwt";
 import { replyMessage, sendReply } from "./triggers";
 import { escapeMarkdown } from "./utils";
 
@@ -16,8 +16,8 @@ export async function sendLogsToGroup(ev: ExtendableEventType) {
   }
 
   try {
-    const { payload } = await validateJWT(jwtAuth);
-    const { group, topic, msg } = payload as JWTResponse;
+    const { payload } = await validateJwt(jwtAuth);
+    const { group, topic, msg } = payload as JwtResponse;
 
     if (topic) {
       await sendReply(group, topic, escapeMarkdown(msg, "*`[]()@"), true);

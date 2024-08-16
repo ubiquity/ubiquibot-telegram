@@ -1,12 +1,13 @@
 /**
  * All console.log for debugging the worker on cloudflare dashboard
  */
-
+const env = checkEnvVars();
 import { BOT_COMMANDS, ENABLE_TOPIC, GITHUB_PATHNAME } from "./constants";
-import { completeGPT3 } from "./helpers/chatGPT";
+import { completeGpt3 } from "./helpers/chat-gpt";
 import { createIssue } from "./helpers/github";
 import { onPrivateCallbackQuery } from "./helpers/navigation";
 import { oAuthHandler } from "./helpers/oauth-login";
+import { checkEnvVars } from "./helpers/parse-env";
 import { getForum, getUserGithubId, getUserGithubToken } from "./helpers/supabase";
 import { changeForumName, getBotUsername, handleSlashCommand, isAdminOfChat, isBotAdded, isBotRemoved } from "./helpers/telegram";
 import { answerCallbackQuery, apiUrl, deleteBotMessage, editBotMessage, sendReply } from "./helpers/triggers";
@@ -17,13 +18,13 @@ import {
   extractTaskInfo,
   generateMessageLink,
   getRepoData,
-  isCooldownReady,
+  isCoolDownReady,
   removeTag,
   setLastAnalysisTimestamp,
   slashCommandCheck,
 } from "./helpers/utils";
 import { sendLogsToGroup } from "./helpers/webhook";
-import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/Basic";
+import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, MyChatQueryType, UpdateType } from "./types/telegram";
 
 /**
  * Wait for requests to the worker
@@ -31,12 +32,12 @@ import { CallbackQueryType, ExtendableEventType, FetchEventType, MessageType, My
 addEventListener("fetch", async (event: Event) => {
   const ev = event as FetchEventType;
   const url = new URL(ev.request.url);
-  if (url.pathname === WEBHOOK) {
+  if (url.pathname === env.WEBHOOK) {
     await ev.respondWith(handleWebhook(ev as ExtendableEventType, url));
   } else if (url.pathname === GITHUB_PATHNAME) {
     await ev.respondWith(oAuthHandler(ev as ExtendableEventType, url));
   } else if (url.pathname === "/registerWebhook") {
-    await ev.respondWith(registerWebhook(url, WEBHOOK || "", SECRET || ""));
+    await ev.respondWith(registerWebhook(url, env.WEBHOOK || "", env.SECRET || ""));
   } else if (url.pathname === "/unRegisterWebhook") {
     await ev.respondWith(unRegisterWebhook());
   } else if (url.pathname === "/setCommands") {
@@ -54,7 +55,7 @@ addEventListener("fetch", async (event: Event) => {
  */
 async function handleWebhook(event: ExtendableEventType, url: URL) {
   // Check secret
-  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) {
+  if (event.request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.SECRET) {
     return new Response("Unauthorized", { status: 403 });
   }
 
@@ -177,69 +178,73 @@ async function onBotInstall(event: MyChatQueryType) {
  * https://core.telegram.org/bots/api#message
  */
 async function onCallbackQuery(callbackQuery: CallbackQueryType) {
-  const clickerId = callbackQuery.from.id; // id of user who clicked the button
-  const clickerUsername = callbackQuery.from.username; // Username of user who clicked the button
-  const creatorsUsername = callbackQuery.message.reply_to_message.from.username; // Creator's username
-  const groupId = callbackQuery.message.chat.id; // group id
-  const messageId = callbackQuery.message.message_id; // id for current message
-  const messageIdReply = callbackQuery.message.reply_to_message.message_id; // id of root message
-  const messageText = callbackQuery.message.text; // text of current message
-  const replyToMessage = callbackQuery.message.reply_to_message.text; // text of root message
+  const clickerId = callbackQuery.from.id;
+  const clickerUsername = callbackQuery.from.username;
+  const creatorsUsername = callbackQuery.message.reply_to_message.from.username;
+  const groupId = callbackQuery.message.chat.id;
+  const messageId = callbackQuery.message.message_id;
+  const messageIdReply = callbackQuery.message.reply_to_message.message_id;
+  const messageText = callbackQuery.message.text;
+  const replyToMessage = callbackQuery.message.reply_to_message.text;
 
   const isAdmin = await isAdminOfChat(clickerId, groupId);
-  // clicker needs to be the creator or admin
   if (!isAdmin && clickerUsername !== creatorsUsername) {
     return answerCallbackQuery(callbackQuery.id, "You are not the creator of this task or an admin");
   }
 
-  // get users token if available
   const token = await getUserGithubToken(creatorsUsername, groupId);
 
   if (callbackQuery.data === "create_task") {
-    // get message link
-    const messageLink = generateMessageLink(messageIdReply, groupId);
-
-    const { title, timeEstimate, orgName, repoName } = extractTaskInfo(messageText);
-
-    if (title === null || timeEstimate === null) {
-      console.log(`Task title is null`);
-      return;
-    }
-
-    console.log(`Check: ${title}, ${timeEstimate} ${orgName}:${repoName}`);
-
-    if (!repoName || !orgName) {
-      console.log(`No Github data mapped to chat`);
-      return;
-    }
-
-    // get tagged user if available
-    const tagged = extractTag(replyToMessage);
-    let githubId;
-
-    if (tagged) {
-      githubId = await getUserGithubId(tagged, groupId);
-      console.log("Tagged user found:", githubId);
-
-      !githubId && (await sendReply(groupId, messageId, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true));
-    }
-
-    // remove tag from issue body
-    const tagFreeTitle = removeTag(replyToMessage);
-
-    const { data, assignees, error } = await createIssue(timeEstimate || "", orgName, repoName, title || "", tagFreeTitle, messageLink, githubId || -1, token);
-
-    console.log(`Issue created: ${data.html_url} ${data.message}`);
-
-    const msg = data.html_url
-      ? `*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*${assignees ? ` and @${tagged} as assignee` : ""}`
-      : `Error creating issue on *${orgName}/${repoName}*, Details: *${error || data.message}*`;
-
-    await editBotMessage(groupId, messageId, msg);
-    return answerCallbackQuery(callbackQuery.id, "issue created!");
+    await handleCreateTask(callbackQuery, messageIdReply, groupId, messageText, replyToMessage, token);
   } else if (callbackQuery.data === "reject_task") {
     await deleteBotMessage(groupId, messageId);
   }
+}
+
+async function handleCreateTask(
+  callbackQuery: CallbackQueryType,
+  messageIdReply: number,
+  groupId: number,
+  messageText: string,
+  replyToMessage: string,
+  token: string
+) {
+  const messageLink = generateMessageLink(messageIdReply, groupId);
+  const { title, timeEstimate, orgName, repoName } = extractTaskInfo(messageText);
+
+  if (!title || !timeEstimate) {
+    console.log(`Task title is null`);
+    return;
+  }
+
+  if (!repoName || !orgName) {
+    console.log(`No Github data mapped to chat`);
+    return;
+  }
+
+  const tagged = extractTag(replyToMessage);
+  let githubId;
+
+  if (tagged) {
+    githubId = await getUserGithubId(tagged, groupId);
+    if (!githubId) {
+      await sendReply(groupId, messageIdReply, escapeMarkdown(`User *${tagged}* does not have a Github account linked`, "*`[]()@/"), true);
+    }
+  }
+
+  const tagFreeTitle = removeTag(replyToMessage);
+  const { data, assignees, error } = await createIssue(timeEstimate, orgName, repoName, title, tagFreeTitle, messageLink, githubId || -1, token);
+
+  let msg = data.html_url
+    ? `*Issue created: [Check it out here](${data.html_url})* with time estimate *${timeEstimate}*`
+    : `Error creating issue on *${orgName}/${repoName}*, Details: *${error || data.message}*`;
+
+  if (data.html_url && assignees) {
+    msg += ` and @${tagged} as assignee`;
+  }
+
+  await editBotMessage(groupId, callbackQuery.message.message_id, msg);
+  return answerCallbackQuery(callbackQuery.id, "issue created!");
 }
 
 /**
@@ -250,7 +255,8 @@ async function onMessage(message: MessageType, url: URL) {
   console.log(`Received message: ${message.text}`);
 
   if (message.forum_topic_edited) {
-    await changeForumName(message.forum_topic_edited.name, message.message_thread_id, message.chat.id, message.from.id);
+    await handleForumTopicEdited(message);
+    return;
   }
 
   if (!message.text) {
@@ -258,46 +264,58 @@ async function onMessage(message: MessageType, url: URL) {
     return;
   }
 
-  // HANDLE SLASH HANDLERS HERE
   const isSlash = slashCommandCheck(message.text);
   const isPrivate = message.chat.type === "private";
   const chatId = message.chat.id;
-  const fromId = message.from.id; // get caller id
+  const fromId = message.from.id;
   const username = message.from.username;
   const messageId = message.message_id;
   const forumName = message?.reply_to_message?.forum_topic_created?.name;
   const threadId = message?.reply_to_message?.message_thread_id || message?.message_thread_id;
 
-  if (isPrivate) {
-    return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
-  } else if (isSlash) {
+  if (isPrivate || isSlash) {
     return handleSlashCommand(isPrivate, isSlash, message.text, fromId, chatId, username, url, messageId, forumName, threadId);
   }
 
-  // Check if cooldown
-  const isReady = isCooldownReady();
-
-  if (!isReady) {
-    console.log(`Skipping, bot on cooldown`);
+  if (!isCoolDownReady()) {
+    console.log(`Skipping, bot on cool down`);
     return;
   }
 
   const msgText = cleanMessage(message.text);
-
   if (msgText === "") {
     console.log(`Skipping, message is empty`);
     console.log(message);
     return;
   }
 
-  // Analyze the message with ChatGPT
-  const gpt3Info = await completeGPT3(msgText);
-
-  if (gpt3Info == undefined || gpt3Info.issueTitle == null) {
+  const gpt3Info = await completeGpt3(msgText);
+  if (!gpt3Info || !gpt3Info.issueTitle) {
     console.log(`No valid task found`);
     return;
   }
 
+  await handleGpt3Info(gpt3Info, chatId, messageId, forumName);
+}
+
+async function handleForumTopicEdited(message: MessageType) {
+  await changeForumName({
+    newForumName: message.forum_topic_edited.name,
+    threadId: message.message_thread_id,
+    chatId: message.chat.id,
+    fromId: message.from.id,
+  });
+}
+
+async function handleGpt3Info(
+  gpt3Info: {
+    issueTitle: string | null;
+    timeEstimate: string | null;
+  },
+  chatId: number,
+  messageId: number,
+  forumName: string
+) {
   const { issueTitle, timeEstimate } = gpt3Info;
 
   if (forumName) {
@@ -308,11 +326,9 @@ async function onMessage(message: MessageType, url: URL) {
     }
   }
 
-  // Update the last analysis timestamp upon successful analysis
   setLastAnalysisTimestamp(Date.now());
 
   const { repoName, orgName } = await getRepoData(chatId, forumName);
-
   if (!repoName || !orgName) {
     console.log(`No Github data mapped to chat`);
     return sendReply(

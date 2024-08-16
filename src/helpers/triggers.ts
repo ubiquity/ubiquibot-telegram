@@ -1,5 +1,7 @@
-import { ApiParam, DataType, KeyboardDataType } from "../types/Basic";
+import { ApiParam, DataType, KeyboardDataType } from "../types/telegram";
+import { checkEnvVars } from "./parse-env";
 import { createKeyboardRow, escapeMarkdown } from "./utils";
+const env = checkEnvVars();
 
 /**
  * Return url to telegram api, optionally with parameters added
@@ -9,7 +11,7 @@ export function apiUrl(methodName: string, params: ApiParam | null = null) {
   if (params !== null) {
     query = "?" + new URLSearchParams(params as string).toString();
   }
-  return `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${methodName}${query}`;
+  return `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${methodName}${query}`;
 }
 
 /**
@@ -114,11 +116,3 @@ export async function deleteBotMessage(chatId: number, messageId: number) {
     return null;
   }
 }
-
-export default {
-  deleteBotMessage,
-  editBotMessage,
-  sendReply,
-  answerCallbackQuery,
-  apiUrl,
-};

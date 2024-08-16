@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import { checkEnvVars } from "./parse-env";
+const env = checkEnvVars();
+export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const ERROR_ADDING_REPO = "Error adding github_repo to supabase";
+const ERROR_GETTING_FORUM = "Error getting forum:";
 
 export async function addTelegramBot(chatId: number, fromId: number, groupName: string) {
   try {
@@ -41,16 +45,6 @@ export async function getTelegramBotByFromId(fromId: number) {
   }
 }
 
-export async function removeTelegramBot(chatId: number, fromId: number) {
-  try {
-    const { data, error } = await supabase.from("telegram_bot_groups").delete().eq("id", chatId).eq("from_id", fromId);
-
-    return { data, error };
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 export async function linkGithubRepoToTelegram(fromId: number, chatId: number, githubRepo: string) {
   try {
     const { data, error } = await supabase.from("telegram_bot_groups").select().eq("from_id", fromId).eq("id", chatId);
@@ -64,7 +58,7 @@ export async function linkGithubRepoToTelegram(fromId: number, chatId: number, g
         updated_at: new Date().toUTCString(),
       });
     } else if (error) {
-      console.log("Error adding github_repo to supabase");
+      console.log(ERROR_ADDING_REPO);
     }
   } catch (error) {
     console.log(error);
@@ -87,7 +81,7 @@ export async function linkGithubRepoToTelegramForum(id: number, githubRepo: stri
         updated_at: new Date().toUTCString(),
       });
     } else if (error) {
-      console.log("Error adding github_repo to supabase");
+      console.log(ERROR_ADDING_REPO);
     }
   } catch (error) {
     console.log(error);
@@ -100,7 +94,7 @@ export async function getRepoByGroupId(groupId: number) {
     if (data && data.length > 0) {
       return data[0]?.github_repo;
     } else if (error) {
-      console.log("Error adding github_repo to supabase");
+      console.log(ERROR_ADDING_REPO);
       return "";
     }
   } catch (error) {
@@ -211,7 +205,7 @@ export async function getForum(groupId: number, forumName: string) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("forum_name", forumName);
 
   if (error) {
-    console.error("Error getting forum:", error.message);
+    console.error(ERROR_GETTING_FORUM, error.message);
     return null;
   }
 
@@ -226,7 +220,7 @@ export async function getForumByThreadId(groupId: number, threadId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("thread_id", threadId).eq("group_id", groupId);
 
   if (error) {
-    console.error("Error getting forum:", error.message);
+    console.error(ERROR_GETTING_FORUM, error.message);
     return null;
   }
 
@@ -241,7 +235,7 @@ export async function getForumById(forumId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("id", forumId);
 
   if (error) {
-    console.error("Error getting forum:", error.message);
+    console.error(ERROR_GETTING_FORUM, error.message);
     return null;
   }
 
@@ -256,7 +250,7 @@ export async function getForums(groupId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId);
 
   if (error) {
-    console.error("Error getting forum:", error.message);
+    console.error(ERROR_GETTING_FORUM, error.message);
     return null;
   }
 
@@ -271,15 +265,11 @@ export async function hasEnabledForum(groupId: number) {
   const { data, error } = await supabase.from("telegram_bot_forums").select().eq("group_id", groupId).eq("enabled", true);
 
   if (error) {
-    console.error("Error getting forum:", error.message);
+    console.error(ERROR_GETTING_FORUM, error.message);
     return null;
   }
 
-  if (data.length === 0) {
-    return false;
-  }
-
-  return true;
+  return data.length > 0;
 }
 
 export async function getUserGithubToken(githubId: string, groupId: number) {
